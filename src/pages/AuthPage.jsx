@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
 import './AuthPage.css';
 
-const AuthPage = ({ login, signup }) => {
+const AuthPage = ({ login, signup, loginWithGoogle }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
@@ -13,14 +13,10 @@ const AuthPage = ({ login, signup }) => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Google Auth & Pre-fill states
+  // Google Auth Client ID State
   const [googleClientId, setGoogleClientId] = useState('');
   const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
-  const [showGoogleSetupInfo, setShowGoogleSetupInfo] = useState(false);
-  const [isGoogleVerified, setIsGoogleVerified] = useState(false);
-  
   const googleBtnContainerRef = useRef(null);
-  const passwordInputRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,9 +49,9 @@ const AuthPage = ({ login, signup }) => {
     fetchClientIdAndSetup();
   }, []);
 
-  // Initialize and render Google Sign-In Button on the Sign-Up tab when script/ID load
+  // Initialize and render Google Sign-In Button on both tabs
   useEffect(() => {
-    if (!isLogin && !isGoogleVerified && isGoogleScriptLoaded && googleClientId && googleBtnContainerRef.current) {
+    if (isGoogleScriptLoaded && googleClientId && googleBtnContainerRef.current) {
       try {
         /* global google */
         google.accounts.id.initialize({
@@ -71,49 +67,36 @@ const AuthPage = ({ login, signup }) => {
             type: 'standard',
             theme: 'filled_dark',
             size: 'large',
-            text: 'signup_with', // Render "Sign up with Google" directly
+            text: 'continue_with', // Render "Continue with Google"
             shape: 'rectangular',
             logo_alignment: 'left',
-            width: googleBtnContainerRef.current.offsetWidth || 340
+            width: googleBtnContainerRef.current.offsetWidth || 354
           }
         );
       } catch (err) {
         console.error("Google Sign-In button render failed:", err);
       }
     }
-  }, [isLogin, isGoogleVerified, isGoogleScriptLoaded, googleClientId]); // Re-render conditionally
+  }, [isLogin, isGoogleScriptLoaded, googleClientId]); // Re-render conditionally when switching tabs
 
-  const handleGoogleCredentialResponse = (response) => {
+  const handleGoogleCredentialResponse = async (response) => {
     setError('');
+    setIsSubmitting(true);
     try {
-      // Decode JWT token payload in browser to extract email
-      const base64Url = response.credential.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      const payload = JSON.parse(jsonPayload);
-      const googleEmail = payload.email;
-
-      if (!googleEmail) {
-        throw new Error("Could not retrieve email from Google profile.");
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        username: googleEmail
-      }));
-      setIsGoogleVerified(true);
-      
-      // Auto focus password input so the user can immediately set their password
-      setTimeout(() => {
-        if (passwordInputRef.current) {
-          passwordInputRef.current.focus();
+      const user = await loginWithGoogle(response.credential);
+      if (user) {
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/order');
         }
-      }, 100);
-
+      } else {
+        setError('Google Authentication was rejected by the server.');
+      }
     } catch (err) {
-      setError(err.message || 'Google verification failed.');
+      setError(err.message || 'Google Authentication failed.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -165,6 +148,10 @@ const AuthPage = ({ login, signup }) => {
     }
   };
 
+  const handlePlaceholderClick = () => {
+    alert("Google Authentication is in sandbox/setup mode. Please specify GOOGLE_CLIENT_ID in server/.env to activate live Google login!");
+  };
+
   return (
     <div className="auth-page-container">
       <div className="auth-card glass">
@@ -194,27 +181,6 @@ const AuthPage = ({ login, signup }) => {
             : 'Join our community of art lovers and get your custom sketch.'}
         </p>
 
-        {/* Premium Google Verified Badge */}
-        {!isLogin && isGoogleVerified && (
-          <div className="google-verified-badge animate-fade-in">
-            <span className="badge-icon">✓</span>
-            <div className="badge-details">
-              <p className="badge-title">Google Account Verified</p>
-              <p className="badge-email">{formData.username}</p>
-            </div>
-            <button 
-              type="button" 
-              className="reset-google-btn"
-              onClick={() => {
-                setIsGoogleVerified(false);
-                setFormData(prev => ({ ...prev, username: '' }));
-              }}
-            >
-              Reset
-            </button>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label>Username / Email</label>
@@ -223,20 +189,15 @@ const AuthPage = ({ login, signup }) => {
               name="username"
               value={formData.username} 
               onChange={handleChange} 
-              placeholder={isGoogleVerified ? "" : "Enter username or email"}
+              placeholder="Enter username or email"
               required
-              disabled={isSubmitting || isGoogleVerified}
-              style={isGoogleVerified ? { opacity: 0.6, background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(0,128,128,0.3)' } : {}}
+              disabled={isSubmitting}
             />
-            {!isLogin && isGoogleVerified && (
-              <p className="verified-hint">Locked to verified Google email. Set your password below.</p>
-            )}
           </div>
           
           <div className="form-group">
             <label>Password</label>
             <input 
-              ref={passwordInputRef}
               type="password" 
               name="password"
               value={formData.password} 
@@ -265,60 +226,45 @@ const AuthPage = ({ login, signup }) => {
           {error && <p className="auth-error">{error}</p>}
           
           <button type="submit" className="btn-primary w-full mt-1" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Account...' : (isLogin ? 'Login' : 'Create Account')}
+            {isSubmitting ? 'Processing...' : (isLogin ? 'Login' : 'Create Account')}
           </button>
         </form>
 
-        {/* Dynamic Sign Up Google Autofill Option */}
-        {!isLogin && !isGoogleVerified && (
-          <>
-            <div className="auth-divider">
-              <span>or</span>
-            </div>
+        <div className="auth-divider">
+          <span>or</span>
+        </div>
 
-            <div className="google-auth-section">
-              {googleClientId ? (
-                <div 
-                  ref={googleBtnContainerRef} 
-                  id="google-signin-button" 
-                  className="google-signin-btn-container"
-                  style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
-                ></div>
-              ) : (
-                <div className="google-setup-warning glass" onClick={() => setShowGoogleSetupInfo(!showGoogleSetupInfo)}>
-                  <span className="warning-icon">🔑</span>
-                  <div className="warning-content">
-                    <p className="warning-title">Sign Up via Google Available</p>
-                    <p className="warning-desc">Click here for developer setup instructions.</p>
-                  </div>
-                </div>
-              )}
-
-              {showGoogleSetupInfo && (
-                <div className="google-setup-details glass-dark mt-1 animate-fade-in" style={{ padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'left', border: '1px solid rgba(215, 180, 106, 0.2)' }}>
-                  <p style={{ color: '#d7b46a', fontWeight: 'bold', marginBottom: '0.5rem' }}>🔧 Google Sign-Up Setup Guide:</p>
-                  <ol style={{ paddingLeft: '1.2rem', color: '#ccc', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" style={{ color: '#d7b46a', textDecoration: 'underline' }}>Google Cloud Console</a>.</li>
-                    <li>Create a project and set up your <strong>OAuth Consent Screen</strong>.</li>
-                    <li>Create an <strong>OAuth Client ID</strong> (Web Application).</li>
-                    <li>Add <code>http://localhost:5173</code> to <strong>Authorized JavaScript origins</strong>.</li>
-                    <li>Copy the Client ID and add it in your <code>server/.env</code> file as:
-                      <code style={{ display: 'block', background: '#111', padding: '0.3rem', borderRadius: '4px', margin: '0.3rem 0', wordBreak: 'break-all', border: '1px solid rgba(255,255,255,0.05)' }}>GOOGLE_CLIENT_ID=your_google_client_id_here</code>
-                    </li>
-                    <li>Restart your server!</li>
-                  </ol>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+        <div className="google-auth-section">
+          {googleClientId ? (
+            <div 
+              ref={googleBtnContainerRef} 
+              id="google-signin-button" 
+              className="google-signin-btn-container"
+              style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
+            ></div>
+          ) : (
+            <button 
+              type="button" 
+              className="btn-google-fallback"
+              onClick={handlePlaceholderClick}
+            >
+              <svg className="google-logo-svg" viewBox="0 0 24 24" width="18" height="18">
+                <path fill="#EA4335" d="M12 5.04c1.67 0 3.2.58 4.4 1.7l3.28-3.28C17.7 1.58 15 .75 12 .75 7.3.75 3.33 3.4 1.34 7.28l3.96 3.06C6.27 7.26 8.9 5.04 12 5.04z" />
+                <path fill="#4285F4" d="M23.45 12.3c0-.82-.07-1.6-.22-2.3H12v4.4h6.42c-.27 1.45-1.1 2.68-2.3 3.47l3.6 2.8c2.1-1.93 3.32-4.78 3.32-8.37z" />
+                <path fill="#FBBC05" d="M5.3 14.78c-.24-.72-.37-1.5-.37-2.3s.13-1.58.37-2.3L1.34 7.28C.48 9 0 10.95 0 13s.48 4 1.34 5.72l3.96-2.94z" />
+                <path fill="#34A853" d="M12 23.25c3.24 0 5.95-1.07 7.93-2.9l-3.6-2.8c-1.1.74-2.5 1.18-4.33 1.18-3.1 0-5.73-2.22-6.7-5.32L1.34 16.5C3.33 20.35 7.3 23.25 12 23.25z" />
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+          )}
+        </div>
 
         <div className="auth-footer">
           <p className="text-dim">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <span 
               className="auth-link" 
-              onClick={() => { if (!isSubmitting) { setIsLogin(!isLogin); setIsGoogleVerified(false); setError(''); } }}
+              onClick={() => { if (!isSubmitting) { setIsLogin(!isLogin); setError(''); } }}
             >
               {isLogin ? 'Sign Up' : 'Login'}
             </span>
