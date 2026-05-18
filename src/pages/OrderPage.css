@@ -1,0 +1,259 @@
+.order-page-container {
+  padding-top: 120px;
+  padding-bottom: 5rem;
+  background: radial-gradient(circle at bottom left, rgba(215, 180, 106, 0.03), transparent);
+  min-height: 100vh;
+}
+
+/* Tabs */
+.order-tabs-container {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.order-tab-btn {
+  background: transparent;
+  border: none;
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.order-tab-btn:hover {
+  color: var(--accent-gold);
+}
+
+.order-tab-btn.active {
+  color: var(--accent-gold);
+  border-bottom-color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* Dashboard Summary Cards */
+.order-stats-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.order-stat-card {
+  padding: 1.8rem;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+}
+
+.order-stat-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.order-stat-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-family: 'Tenor Sans', sans-serif;
+}
+
+/* Request List & Cards */
+.orders-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.customer-order-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.customer-order-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(215, 180, 106, 0.3);
+}
+
+.order-card-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.order-card-info {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.order-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.order-card-meta .meta-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.order-card-meta .meta-val {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.order-card-meta .meta-val.price {
+  color: var(--accent-gold);
+}
+
+.order-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.btn-toggle-track {
+  background: transparent;
+  border: 1px solid rgba(215, 180, 106, 0.3);
+  color: var(--accent-gold);
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  font-family: 'Tenor Sans', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.btn-toggle-track:hover {
+  background: rgba(215, 180, 106, 0.08);
+  border-color: var(--accent-gold);
+}
+
+/* Collapsible tracking section */
+.order-tracking-collapse {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.order-tracking-collapse.open {
+  max-height: 600px;
+}
+
+.order-tracking-content {
+  padding: 2.5rem 2rem;
+}
+
+/* Status pills for customer view */
+.status-badge {
+  padding: 0.35rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.status-badge.pending {
+  background: rgba(215, 180, 106, 0.1);
+  color: #d7b46a;
+  border: 1px solid rgba(215, 180, 106, 0.2);
+}
+
+.status-badge.accepted {
+  background: rgba(0, 128, 128, 0.1);
+  color: #008080;
+  border: 1px solid rgba(0, 128, 128, 0.2);
+}
+
+.status-badge.in-progress {
+  background: rgba(0, 128, 128, 0.1);
+  color: #008080;
+  border: 1px solid rgba(0, 128, 128, 0.2);
+}
+
+.status-badge.completed {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.status-badge.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Empty State Styling */
+.tracking-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.tracking-empty-state span {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.tracking-empty-state h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.tracking-empty-state p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+/* Responsiveness */
+@media (max-width: 992px) {
+  .order-stats-overview {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+  .order-card-info {
+    gap: 1.5rem;
+    width: 100%;
+  }
+  .order-card-actions {
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}

@@ -1,0 +1,233 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 0.8rem 0;
+  transition: var(--transition-smooth);
+  background: rgba(10, 18, 18, 0.9); /* Dark charcoal/black with slight transparency */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbar.scrolled {
+  padding: 0.4rem 0;
+  background: rgba(5, 10, 10, 0.95); /* Slightly darker when scrolled */
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.nav-container-full {
+  width: 100%;
+  padding: 0 4rem; /* Wide padding for professional toolbar feel */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.logo-container:hover {
+  opacity: 0.8;
+}
+
+.logo-icon {
+  position: relative;
+  font-size: 3.2rem;
+  font-weight: 300;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  margin-top: -12px; /* Adjusted further as requested */
+}
+
+.logo-a {
+  color: white; /* Swapped back to white */
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-serif);
+}
+
+.logo-n {
+  color: #d7b46a; /* Swapped to gold */
+  position: absolute;
+  left: 1.1rem; /* Adjusted for larger size */
+  top: 0.4rem; /* Adjusted for larger size */
+  z-index: 1;
+  opacity: 0.6;
+  font-family: var(--font-serif);
+  font-weight: 400;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.1); /* Subtle vertical divider */
+  padding-left: 1.5rem;
+}
+
+.logo-main {
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 10px; /* Precise wide spacing */
+  text-transform: uppercase; /* Switching to uppercase for a stronger brand presence */
+  color: white;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  font-weight: 400;
+}
+
+.logo-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.logo-sub .sub-text {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: #d7b46a; /* Swapped to gold */
+  font-weight: 400;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.logo-sub .line {
+  height: 0.5px; /* Hairline divider */
+  background: #d7b46a; /* Swapped to gold */
+  flex-grow: 1;
+  min-width: 25px;
+  opacity: 0.3;
+}
+
+.nav-links {
+  display: flex;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.nav-links a, .nav-admin-link {
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600; /* Increased for visibility */
+  text-transform: uppercase;
+  letter-spacing: 0.25em; /* Refined wide spacing */
+  color: rgba(255, 255, 255, 0.9); /* Increased opacity */
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+/* Sophisticated underline hover effect */
+.nav-links a::after, .nav-admin-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--accent-amber); /* Using the steel blue/accent color */
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.nav-links a:hover, .nav-admin-link:hover {
+  color: white;
+}
+
+.nav-links a:hover::after, .nav-admin-link:hover::after {
+  width: 100%;
+  opacity: 1;
+}
+
+.btn-nav {
+  padding: 0.8rem 2rem !important;
+  border: 1px solid rgba(215, 180, 106, 0.4) !important; /* Muted gold border */
+  color: #d7b46a !important; /* Gold text */
+  background: transparent !important;
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important; /* Extra weight for the CTA */
+  letter-spacing: 0.2em !important;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.btn-nav:hover {
+  background: #d7b46a !important;
+  color: #0a1212 !important; /* Dark background color */
+  border-color: #d7b46a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(215, 180, 106, 0.15);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.username {
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 0.7rem;
+  color: #d7b46a;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.btn-logout-nav {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout-nav:hover {
+  background: rgba(255, 77, 77, 0.1);
+  color: #ff4d4d;
+  border-color: rgba(255, 77, 77, 0.3);
+}
+
+@media (max-width: 1200px) {
+  .nav-links {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+}

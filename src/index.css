@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Tenor+Sans&display=swap');
+
+:root {
+  /* Colors - Cinematic Palette */
+  --bg-primary: #0a1212;
+  --bg-secondary: #121e1e;
+  --text-primary: #f0f7f7;
+  --text-secondary: #a0baba;
+  
+  --accent-amber: #507d8f; /* Professional Steel Blue */
+  --accent-amber-glow: rgba(80, 125, 143, 0.2);
+  --accent-teal: #008080;
+  --accent-teal-soft: rgba(0, 128, 128, 0.1);
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(10, 18, 18, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  
+  /* Backward Compatibility */
+  --accent-gold: var(--accent-amber);
+  --accent-gold-soft: var(--accent-amber-glow);
+  --accent-navy: #004d4d;
+  
+  /* Effects */
+  --cursor-glow: radial-gradient(circle, rgba(0, 128, 128, 0.15) 0%, transparent 70%);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  
+  /* Typography */
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+  
+  /* Transitions */
+  --transition-smooth: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  --transition-fast: all 0.2s ease;
+}
+
+/* Dark theme is now the primary cinematic theme, but we keep the hook */
+[data-theme='dark'] {
+  --bg-primary: #050a0a;
+  --bg-secondary: #0a1212;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-gold);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-navy);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .serif {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition-fast);
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section-padding {
+  padding: 8rem 0;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 4rem 0;
+  }
+  body {
+    cursor: auto; /* Disable custom cursor on mobile */
+  }
+  .custom-cursor, .cursor-glow {
+    display: none;
+  }
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.btn-primary {
+  padding: 1rem 2.5rem;
+  background: var(--accent-gold);
+  color: white;
+  font-weight: 500;
+  border-radius: 0;
+  display: inline-block;
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  background: var(--accent-navy);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.text-gold {
+  color: var(--accent-gold);
+}
