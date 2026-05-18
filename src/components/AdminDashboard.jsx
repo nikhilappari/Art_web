@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './AdminDashboard.css';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { api } from '../utils/api';
 
-const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, pricing, setPricing, clientRequests = [], updateRequest }) => {
+const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, clientRequests = [], updateRequest }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -44,28 +45,15 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (pricing.cloudinaryCloudName && pricing.cloudinaryUploadPreset) {
-        setIsUploadingSketch(true);
-        try {
-          const url = await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
-          setNewSketch(prev => ({ ...prev, image: url }));
-        } catch (error) {
-          console.error("Cloudinary upload failed:", error);
-          alert(`Cloudinary Upload Failed: ${error.message}. Falling back to local storage.`);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setNewSketch(prev => ({ ...prev, image: reader.result }));
-          };
-          reader.readAsDataURL(file);
-        } finally {
-          setIsUploadingSketch(false);
-        }
-      } else {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setNewSketch(prev => ({ ...prev, image: reader.result }));
-        };
-        reader.readAsDataURL(file);
+      setIsUploadingSketch(true);
+      try {
+        const { secure_url } = await api.uploadFile(file);
+        setNewSketch(prev => ({ ...prev, image: secure_url }));
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert(`Upload Failed: ${error.message}`);
+      } finally {
+        setIsUploadingSketch(false);
       }
     }
   };
@@ -74,28 +62,15 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
     const file = e.target.files[0];
     if (file) {
       const setUploading = type === 'before' ? setIsUploadingBefore : setIsUploadingAfter;
-      if (pricing.cloudinaryCloudName && pricing.cloudinaryUploadPreset) {
-        setUploading(true);
-        try {
-          const url = await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
-          setTransformation(prev => ({ ...prev, [type]: url }));
-        } catch (error) {
-          console.error("Cloudinary upload failed:", error);
-          alert(`Cloudinary Upload Failed: ${error.message}. Falling back to local storage.`);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setTransformation(prev => ({ ...prev, [type]: reader.result }));
-          };
-          reader.readAsDataURL(file);
-        } finally {
-          setUploading(false);
-        }
-      } else {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setTransformation(prev => ({ ...prev, [type]: reader.result }));
-        };
-        reader.readAsDataURL(file);
+      setUploading(true);
+      try {
+        const { secure_url } = await api.uploadFile(file);
+        setTransformation(prev => ({ ...prev, [type]: secure_url }));
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert(`Upload Failed: ${error.message}`);
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -313,29 +288,32 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
               </div>
               <button 
                 className="btn-primary mt-2" 
-                onClick={(e) => {
+                onClick={async (e) => {
                   const btn = e.currentTarget;
                   const originalText = btn.innerText;
                   btn.innerText = "Saving Changes...";
                   btn.disabled = true;
                   btn.style.opacity = "0.7";
                   
-                  // The state is already being synced via useEffect in App.jsx
-                  // This button now primarily serves as a visual confirmation
-                  
-                  setTimeout(() => {
+                  try {
+                    if (saveTransformation) {
+                      await saveTransformation(transformation);
+                    }
                     btn.innerText = "Changes Saved Live!";
                     btn.style.background = "#008080";
                     btn.style.color = "white";
-                    
-                    setTimeout(() => {
-                      btn.innerText = originalText;
-                      btn.disabled = false;
-                      btn.style.opacity = "1";
-                      btn.style.background = "";
-                      btn.style.color = "";
-                    }, 2000);
-                  }, 800);
+                  } catch (err) {
+                    alert("Failed to save transformation settings: " + err.message);
+                    btn.innerText = "Error Saving";
+                  }
+                  
+                  setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.style.background = "";
+                    btn.style.color = "";
+                  }, 2000);
                 }}
               >
                 Save Changes
@@ -506,28 +484,32 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
               </div>
               <button 
                 className="btn-primary mt-2" 
-                onClick={(e) => {
+                onClick={async (e) => {
                   const btn = e.currentTarget;
                   const originalText = btn.innerText;
                   btn.innerText = "Saving Changes...";
                   btn.disabled = true;
                   btn.style.opacity = "0.7";
                   
-                  // Synced via useEffect in App.jsx
-                  
-                  setTimeout(() => {
+                  try {
+                    if (savePricing) {
+                      await savePricing(pricing);
+                    }
                     btn.innerText = "Changes Saved Live!";
                     btn.style.background = "#008080";
                     btn.style.color = "white";
-                    
-                    setTimeout(() => {
-                      btn.innerText = originalText;
-                      btn.disabled = false;
-                      btn.style.opacity = "1";
-                      btn.style.background = "";
-                      btn.style.color = "";
-                    }, 2000);
-                  }, 800);
+                  } catch (err) {
+                    alert("Failed to save pricing: " + err.message);
+                    btn.innerText = "Error Saving";
+                  }
+                  
+                  setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.style.background = "";
+                    btn.style.color = "";
+                  }, 2000);
                 }}
               >
                 Save Pricing Changes
@@ -574,26 +556,32 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
 
               <button 
                 className="btn-primary mt-2" 
-                onClick={(e) => {
+                onClick={async (e) => {
                   const btn = e.currentTarget;
                   const originalText = btn.innerText;
                   btn.innerText = "Saving Settings...";
                   btn.disabled = true;
                   btn.style.opacity = "0.7";
                   
-                  setTimeout(() => {
+                  try {
+                    if (savePricing) {
+                      await savePricing(pricing);
+                    }
                     btn.innerText = "Settings Saved Live!";
                     btn.style.background = "#008080";
                     btn.style.color = "white";
-                    
-                    setTimeout(() => {
-                      btn.innerText = originalText;
-                      btn.disabled = false;
-                      btn.style.opacity = "1";
-                      btn.style.background = "";
-                      btn.style.color = "";
-                    }, 2000);
-                  }, 800);
+                  } catch (err) {
+                    alert("Failed to save Cloudinary settings: " + err.message);
+                    btn.innerText = "Error Saving";
+                  }
+                  
+                  setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.style.background = "";
+                    btn.style.color = "";
+                  }, 2000);
                 }}
               >
                 Save Cloudinary Settings

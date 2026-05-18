@@ -1,7 +1,7 @@
 import React from 'react';
 import AdminDashboard from '../components/AdminDashboard';
 
-const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, pricing, setPricing, user, clientRequests, updateRequest }) => {
+const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, user, clientRequests, updateRequest }) => {
   return (
     <div className="admin-page-container">
       <AdminDashboard 
@@ -9,8 +9,10 @@ const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, p
         setArtworks={setArtworks} 
         transformation={transformation}
         setTransformation={setTransformation}
+        saveTransformation={saveTransformation}
         pricing={pricing}
         setPricing={setPricing}
+        savePricing={savePricing}
         user={user}
         clientRequests={clientRequests}
         updateRequest={updateRequest}

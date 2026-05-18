@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RequestSketch.css';
-import { uploadToCloudinary } from '../utils/cloudinary';
+import { api } from '../utils/api';
 
 const RequestSketch = ({ pricing, addRequest, user }) => {
   const [formData, setFormData] = useState({
@@ -90,50 +90,22 @@ const RequestSketch = ({ pricing, addRequest, user }) => {
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      if (pricing?.cloudinaryCloudName && pricing?.cloudinaryUploadPreset) {
-        setIsUploading(true);
-        try {
-          const uploadPromises = files.map(file => 
-            uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset)
-          );
-          const uploadedUrls = await Promise.all(uploadPromises);
-          setFormData(prev => ({ 
-            ...prev, 
-            images: [...prev.images, ...uploadedUrls] 
-          }));
-        } catch (error) {
-          console.error("Cloudinary uploads failed:", error);
-          alert(`Cloudinary Upload Failed: ${error.message}. Falling back to local storage.`);
-          const newImages = [];
-          let loadedCount = 0;
-          files.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              newImages.push(reader.result);
-              loadedCount++;
-              if (loadedCount === files.length) {
-                setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
-              }
-            };
-            reader.readAsDataURL(file);
-          });
-        } finally {
-          setIsUploading(false);
-        }
-      } else {
-        const newImages = [];
-        let loadedCount = 0;
-        files.forEach(file => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            newImages.push(reader.result);
-            loadedCount++;
-            if (loadedCount === files.length) {
-              setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
-            }
-          };
-          reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const uploadPromises = files.map(async (file) => {
+          const res = await api.uploadFile(file);
+          return res.secure_url;
         });
+        const uploadedUrls = await Promise.all(uploadPromises);
+        setFormData(prev => ({ 
+          ...prev, 
+          images: [...prev.images, ...uploadedUrls] 
+        }));
+      } catch (error) {
+        console.error("Uploads failed:", error);
+        alert(`Upload Failed: ${error.message}`);
+      } finally {
+        setIsUploading(false);
       }
     }
   };
