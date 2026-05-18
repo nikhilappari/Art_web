@@ -86,5 +86,19 @@ export const api = {
       body: formData
     });
     return handleResponse(res);
+  },
+
+  /**
+   * Fetch the active Google Auth Client ID configured on the backend.
+   */
+  async getGoogleClientId() {
+    return this.get('/api/auth/google/client-id');
+  },
+
+  /**
+   * Send Google credential payload to backend for token exchange and session creation.
+   */
+  async loginWithGoogle(credential) {
+    return this.post('/api/auth/google', { credential });
   }
 };

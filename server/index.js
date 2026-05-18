@@ -9,6 +9,7 @@ import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { fileURLToPath } from 'url';
 import { getDb, initDb } from './db.js';
+import { OAuth2Client } from 'google-auth-library';
 
 // Load environment variables
 dotenv.config();
@@ -184,6 +185,77 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   return res.json({ user: req.user });
+});
+
+// Google Auth Client ID endpoint
+app.get('/api/auth/google/client-id', (req, res) => {
+  return res.json({ clientId: process.env.GOOGLE_CLIENT_ID || '' });
+});
+
+// Google Sign-In verification endpoint
+app.post('/api/auth/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ message: 'Google credential token is required.' });
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(500).json({ message: 'Google Authentication is not configured on this server.' });
+  }
+
+  try {
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: clientId
+    });
+    const payload = ticket.getPayload();
+    const { sub, email } = payload;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Google account must have an associated email.' });
+    }
+
+    const db = await getDb();
+    
+    // Check if user already exists by google_id
+    let user = await db.get("SELECT * FROM users WHERE google_id = ?", [sub]);
+    
+    if (!user) {
+      // Check if user already exists by username (email)
+      user = await db.get("SELECT * FROM users WHERE username = ?", [email]);
+      
+      if (user) {
+        // Link google_id to existing account
+        await db.run("UPDATE users SET google_id = ? WHERE id = ?", [sub, user.id]);
+        user.google_id = sub;
+      } else {
+        // Create a new user with Google identity
+        const result = await db.run(
+          "INSERT INTO users (username, password_hash, role, google_id) VALUES (?, NULL, 'user', ?)",
+          [email, sub]
+        );
+        user = {
+          id: result.lastID,
+          username: email,
+          role: 'user',
+          google_id: sub
+        };
+      }
+    }
+
+    const tokenPayload = { id: user.id, username: user.username, role: user.role };
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+
+    return res.json({
+      user: { id: user.id, username: user.username, role: user.role },
+      token
+    });
+  } catch (error) {
+    console.error('Google verification failed:', error);
+    return res.status(401).json({ message: 'Invalid Google credential token.', error: error.message });
+  }
 });
 
 // 3. Artworks API

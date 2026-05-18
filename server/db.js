@@ -36,10 +36,18 @@ export async function initDb() {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'user'
+      password_hash TEXT,
+      role TEXT NOT NULL DEFAULT 'user',
+      google_id TEXT UNIQUE
     )
   `);
+
+  // Migrate existing database if google_id is not already present
+  try {
+    await db.exec("ALTER TABLE users ADD COLUMN google_id TEXT UNIQUE");
+  } catch (e) {
+    // Column already exists, safe to ignore
+  }
 
   // Create Artworks Table
   await db.exec(`

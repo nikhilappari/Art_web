@@ -217,6 +217,18 @@ function App() {
     }
   };
 
+  const loginWithGoogle = async (credential) => {
+    try {
+      const data = await api.loginWithGoogle(credential);
+      localStorage.setItem('token', data.token);
+      setCurrentUser(data.user);
+      return data.user;
+    } catch (e) {
+      alert("Google Login Failed: " + e.message);
+      return null;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setCurrentUser(null);
@@ -243,7 +255,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage transformation={transformation} pricing={pricing} addRequest={addRequest} user={currentUser} />} />
             <Route path="/gallery" element={<GalleryPage artworks={artworks} />} />
-            <Route path="/auth" element={<AuthPage login={login} signup={signup} />} />
+            <Route path="/auth" element={<AuthPage login={login} signup={signup} loginWithGoogle={loginWithGoogle} />} />
             
             <Route path="/admin" element={
               <ProtectedRoute user={currentUser} allowedRoles={['admin']}>
