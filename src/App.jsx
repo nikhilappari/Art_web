@@ -29,7 +29,7 @@ function App() {
 
   const [pricing, setPricing] = useState(() => {
     const saved = localStorage.getItem('pricing');
-    return saved ? JSON.parse(saved) : {
+    const defaultPricing = {
       charcoalA4: '1500',
       charcoalA3: '2500',
       charcoalCouple: '3500',
@@ -42,8 +42,11 @@ function App() {
       frameA4Normal: '300',
       frameA4Premium: '500',
       frameA3Normal: '500',
-      frameA3Premium: '700'
+      frameA3Premium: '700',
+      cloudinaryCloudName: '',
+      cloudinaryUploadPreset: ''
     };
+    return saved ? { ...defaultPricing, ...JSON.parse(saved) } : defaultPricing;
   });
 
   const [users, setUsers] = useState(() => {

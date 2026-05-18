@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RequestSketch.css';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
 const RequestSketch = ({ pricing, addRequest, user }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const RequestSketch = ({ pricing, addRequest, user }) => {
     images: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,23 +87,54 @@ const RequestSketch = ({ pricing, addRequest, user }) => {
     calculatePrice();
   }, [formData, pricing]);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      const newImages = [];
-      let loadedCount = 0;
-      
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newImages.push(reader.result);
-          loadedCount++;
-          if (loadedCount === files.length) {
-            setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+      if (pricing?.cloudinaryCloudName && pricing?.cloudinaryUploadPreset) {
+        setIsUploading(true);
+        try {
+          const uploadPromises = files.map(file => 
+            uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset)
+          );
+          const uploadedUrls = await Promise.all(uploadPromises);
+          setFormData(prev => ({ 
+            ...prev, 
+            images: [...prev.images, ...uploadedUrls] 
+          }));
+        } catch (error) {
+          console.error("Cloudinary uploads failed:", error);
+          alert(`Cloudinary Upload Failed: ${error.message}. Falling back to local storage.`);
+          const newImages = [];
+          let loadedCount = 0;
+          files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              newImages.push(reader.result);
+              loadedCount++;
+              if (loadedCount === files.length) {
+                setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
+              }
+            };
+            reader.readAsDataURL(file);
+          });
+        } finally {
+          setIsUploading(false);
+        }
+      } else {
+        const newImages = [];
+        let loadedCount = 0;
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            newImages.push(reader.result);
+            loadedCount++;
+            if (loadedCount === files.length) {
+              setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
     }
   };
 
@@ -223,12 +256,18 @@ const RequestSketch = ({ pricing, addRequest, user }) => {
 
             <div className="form-group">
               <label>Upload Reference Photos (Select multiple)</label>
-              <div className="file-upload">
-                <input type="file" id="photo" accept="image/*" multiple onChange={handleFileChange} hidden />
-                <label htmlFor="photo" className="file-label" style={{ cursor: 'pointer', display: 'block' }}>
-                  {formData.images.length > 0 ? `Add more photos (${formData.images.length} added)` : 'Click to upload photos'}
+              <div className="file-upload" style={{ position: 'relative' }}>
+                <input type="file" id="photo" accept="image/*" multiple onChange={handleFileChange} hidden disabled={isUploading} />
+                <label htmlFor="photo" className="file-label" style={{ cursor: isUploading ? 'not-allowed' : 'pointer', display: 'block', opacity: isUploading ? 0.6 : 1 }}>
+                  {isUploading ? 'Uploading to Cloudinary...' : formData.images.length > 0 ? `Add more photos (${formData.images.length} added)` : 'Click to upload photos'}
                 </label>
-                {formData.images.length > 0 && (
+                {isUploading && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '1rem' }}>
+                    <div className="spinner"></div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Uploading reference files...</span>
+                  </div>
+                )}
+                {formData.images.length > 0 && !isUploading && (
                   <div style={{ marginTop: '1rem', display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {formData.images.map((imgSrc, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>

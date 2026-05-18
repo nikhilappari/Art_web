@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import './AdminDashboard.css';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
 const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, pricing, setPricing, clientRequests = [], updateRequest }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
+
+  // Cloudinary upload loading states
+  const [isUploadingSketch, setIsUploadingSketch] = useState(false);
+  const [isUploadingBefore, setIsUploadingBefore] = useState(false);
+  const [isUploadingAfter, setIsUploadingAfter] = useState(false);
 
   // For the admin table, we'll treat all artworks as 'Published' by default if they don't have a status
   const galleryItems = artworks.map(item => ({
@@ -35,25 +41,62 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
     setShowUploadModal(true);
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewSketch({ ...newSketch, image: reader.result });
-      };
-      reader.readAsDataURL(file);
+      if (pricing.cloudinaryCloudName && pricing.cloudinaryUploadPreset) {
+        setIsUploadingSketch(true);
+        try {
+          const url = await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
+          setNewSketch(prev => ({ ...prev, image: url }));
+        } catch (error) {
+          console.error("Cloudinary upload failed:", error);
+          alert(`Cloudinary Upload Failed: ${error.message}. Falling back to local storage.`);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setNewSketch(prev => ({ ...prev, image: reader.result }));
+          };
+          reader.readAsDataURL(file);
+        } finally {
+          setIsUploadingSketch(false);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setNewSketch(prev => ({ ...prev, image: reader.result }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleTransformationChange = (type, e) => {
+  const handleTransformationChange = async (type, e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTransformation(prev => ({ ...prev, [type]: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      const setUploading = type === 'before' ? setIsUploadingBefore : setIsUploadingAfter;
+      if (pricing.cloudinaryCloudName && pricing.cloudinaryUploadPreset) {
+        setUploading(true);
+        try {
+          const url = await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
+          setTransformation(prev => ({ ...prev, [type]: url }));
+        } catch (error) {
+          console.error("Cloudinary upload failed:", error);
+          alert(`Cloudinary Upload Failed: ${error.message}. Falling back to local storage.`);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setTransformation(prev => ({ ...prev, [type]: reader.result }));
+          };
+          reader.readAsDataURL(file);
+        } finally {
+          setUploading(false);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setTransformation(prev => ({ ...prev, [type]: reader.result }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -221,10 +264,24 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                 <div className="form-group">
                   <label>Reference Photo (Before)</label>
                   <div className="file-upload-wrapper">
-                    <input type="file" accept="image/*" onChange={(e) => handleTransformationChange('before', e)} className="file-input" id="before-upload" />
-                    <label htmlFor="before-upload" className="file-label">Change Reference</label>
-                    <div className="image-preview-container mini">
-                      <img src={transformation.before} alt="Before" className="upload-preview" />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleTransformationChange('before', e)} 
+                      className="file-input" 
+                      id="before-upload" 
+                      disabled={isUploadingBefore}
+                    />
+                    <label htmlFor="before-upload" className="file-label" style={{ opacity: isUploadingBefore ? 0.6 : 1, cursor: isUploadingBefore ? 'not-allowed' : 'pointer' }}>
+                      {isUploadingBefore ? 'Uploading...' : 'Change Reference'}
+                    </label>
+                    <div className="image-preview-container mini" style={{ position: 'relative' }}>
+                      {isUploadingBefore && (
+                        <div className="mini-upload-loader">
+                          <div className="spinner-mini"></div>
+                        </div>
+                      )}
+                      <img src={transformation.before} alt="Before" className="upload-preview" style={{ opacity: isUploadingBefore ? 0.3 : 1 }} />
                     </div>
                   </div>
                 </div>
@@ -232,10 +289,24 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                 <div className="form-group">
                   <label>Sketch Photo (After)</label>
                   <div className="file-upload-wrapper">
-                    <input type="file" accept="image/*" onChange={(e) => handleTransformationChange('after', e)} className="file-input" id="after-upload" />
-                    <label htmlFor="after-upload" className="file-label">Change Sketch</label>
-                    <div className="image-preview-container mini">
-                      <img src={transformation.after} alt="After" className="upload-preview" />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleTransformationChange('after', e)} 
+                      className="file-input" 
+                      id="after-upload" 
+                      disabled={isUploadingAfter}
+                    />
+                    <label htmlFor="after-upload" className="file-label" style={{ opacity: isUploadingAfter ? 0.6 : 1, cursor: isUploadingAfter ? 'not-allowed' : 'pointer' }}>
+                      {isUploadingAfter ? 'Uploading...' : 'Change Sketch'}
+                    </label>
+                    <div className="image-preview-container mini" style={{ position: 'relative' }}>
+                      {isUploadingAfter && (
+                        <div className="mini-upload-loader">
+                          <div className="spinner-mini"></div>
+                        </div>
+                      )}
+                      <img src={transformation.after} alt="After" className="upload-preview" style={{ opacity: isUploadingAfter ? 0.3 : 1 }} />
                     </div>
                   </div>
                 </div>
@@ -459,7 +530,73 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                   }, 800);
                 }}
               >
-                Save Changes
+                Save Pricing Changes
+              </button>
+            </div>
+
+            <div className="admin-card glass max-w-600 mt-2">
+              <h4 className="card-header">Cloudinary Storage Settings</h4>
+              <p className="text-dim mb-2" style={{ fontSize: '0.9rem' }}>
+                Configure Cloudinary to store images securely in the cloud. This avoids local browser storage limitations (10MB limit) and supports higher resolution photos.
+              </p>
+              
+              <div className="pricing-grid">
+                <div className="form-group">
+                  <label>Cloud Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. dxyz12345" 
+                    value={pricing.cloudinaryCloudName || ''} 
+                    onChange={(e) => setPricing(prev => ({...prev, cloudinaryCloudName: e.target.value}))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Upload Preset (Unsigned)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. art_web_preset" 
+                    value={pricing.cloudinaryUploadPreset || ''} 
+                    onChange={(e) => setPricing(prev => ({...prev, cloudinaryUploadPreset: e.target.value}))}
+                  />
+                </div>
+              </div>
+
+              <div className="cloudinary-instructions mt-2 glass" style={{ padding: '1rem', background: 'rgba(255,255,255,0.01)', border: '1px dashed var(--border-color)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                <span className="semibold" style={{ color: 'var(--text-accent)' }}>Setup Guide:</span>
+                <ol style={{ paddingLeft: '1.2rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-secondary)' }}>
+                  <li>Create a free account at <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-accent)', textDecoration: 'underline' }}>cloudinary.com</a>.</li>
+                  <li>Copy your <strong>Cloud Name</strong> from the console dashboard and paste it above.</li>
+                  <li>Go to <strong>Settings &gt; Upload API</strong>, scroll to <strong>Upload presets</strong>, and click <strong>Add upload preset</strong>.</li>
+                  <li>Set the <strong>Signing Mode</strong> to <strong>Unsigned</strong> and click <strong>Save</strong>.</li>
+                  <li>Copy the resulting <strong>Upload Preset name</strong> and paste it above.</li>
+                </ol>
+              </div>
+
+              <button 
+                className="btn-primary mt-2" 
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  const originalText = btn.innerText;
+                  btn.innerText = "Saving Settings...";
+                  btn.disabled = true;
+                  btn.style.opacity = "0.7";
+                  
+                  setTimeout(() => {
+                    btn.innerText = "Settings Saved Live!";
+                    btn.style.background = "#008080";
+                    btn.style.color = "white";
+                    
+                    setTimeout(() => {
+                      btn.innerText = originalText;
+                      btn.disabled = false;
+                      btn.style.opacity = "1";
+                      btn.style.background = "";
+                      btn.style.color = "";
+                    }, 2000);
+                  }, 800);
+                }}
+              >
+                Save Cloudinary Settings
               </button>
             </div>
           </div>
@@ -525,11 +662,18 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                       onChange={handleFileChange}
                       className="file-input"
                       id="sketch-upload"
+                      disabled={isUploadingSketch}
                     />
-                    <label htmlFor="sketch-upload" className="file-label">
-                      {newSketch.image ? 'Change Photo' : 'Choose File'}
+                    <label htmlFor="sketch-upload" className="file-label" style={{ opacity: isUploadingSketch ? 0.6 : 1, cursor: isUploadingSketch ? 'not-allowed' : 'pointer' }}>
+                      {isUploadingSketch ? 'Uploading to Cloudinary...' : newSketch.image ? 'Change Photo' : 'Choose File'}
                     </label>
-                    {newSketch.image && (
+                    {isUploadingSketch && (
+                      <div className="upload-loader-container" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="spinner"></div>
+                        <span className="upload-loader-text" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Uploading to Cloudinary...</span>
+                      </div>
+                    )}
+                    {!isUploadingSketch && newSketch.image && (
                       <div className="image-preview-container">
                         <img src={newSketch.image} alt="Preview" className="upload-preview" />
                       </div>
