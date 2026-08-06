@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Utility client to handle all API communications with the backend.
  * Automatically injects authorization tokens and simplifies fetch syntax.
  */
@@ -7,7 +7,7 @@ const getAuthHeaders = () => {
   const headers = {};
   const token = localStorage.getItem('token');
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers['Authorization'] = 'Bearer ' + token;
   }
   return headers;
 };
@@ -102,3 +102,4 @@ export const api = {
     return this.post('/api/auth/google', { credential });
   }
 };
+
