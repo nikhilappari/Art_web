@@ -31,7 +31,7 @@ const Hero = () => {
           Discover a gallery of personalized art and commission your unique masterpiece.
         </p>
         <div className="hero-actions">
-          <Link to="/gallery" className="btn-primary">Explore Gallery</Link>
+          <Link to="/explore" className="btn-primary">Explore Gallery</Link>
           <Link to="/order" className="btn-secondary">Request a Sketch</Link>
         </div>
       </div>
