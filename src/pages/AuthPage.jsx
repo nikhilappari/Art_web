@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
 import './AuthPage.css';
 
-const AuthPage = ({ login, signup, loginWithGoogle }) => {
+const AuthPage = ({ login, signup }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
@@ -13,110 +13,13 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Google Auth Client ID State
-  const [googleClientId, setGoogleClientId] = useState('');
-  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
-  const googleBtnContainerRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
 
-  // Fetch Google Client ID and initialize Google script
-  useEffect(() => {
-    const fetchClientIdAndSetup = async () => {
-      try {
-        console.log('[AuthPage] Fetching Google Client ID from backend...');
-        const { clientId } = await api.getGoogleClientId();
-        console.log('[AuthPage] Google Client ID received:', clientId ? `${clientId.substring(0, 20)}...` : 'empty');
-        if (clientId) {
-          setGoogleClientId(clientId);
-          
-          // Check if Google GSI client is already loaded, otherwise load it dynamically
-          if (window.google) {
-            console.log('[AuthPage] Google GSI client already loaded');
-            setIsGoogleScriptLoaded(true);
-          } else {
-            console.log('[AuthPage] Loading Google GSI script dynamically...');
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-              console.log('[AuthPage] Google GSI script loaded successfully');
-              setIsGoogleScriptLoaded(true);
-            };
-            script.onerror = () => {
-              console.error('[AuthPage] Failed to load Google GSI script');
-            };
-            document.body.appendChild(script);
-          }
-        } else {
-          console.warn('[AuthPage] Google Client ID is empty - Google auth will be disabled');
-        }
-      } catch (err) {
-        console.error("[AuthPage] Failed to fetch Google Client ID from backend:", err);
-      }
-    };
-    fetchClientIdAndSetup();
-  }, []);
 
-  // Initialize and render Google Sign-In Button on both tabs
-  useEffect(() => {
-    if (isGoogleScriptLoaded && googleClientId && googleBtnContainerRef.current) {
-      try {
-        console.log('[AuthPage] Initializing Google Sign-In button...');
-        /* global google */
-        google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredentialResponse,
-          auto_select: false,
-          cancel_on_tap_outside: true
-        });
 
-        google.accounts.id.renderButton(
-          googleBtnContainerRef.current,
-          {
-            type: 'standard',
-            theme: 'filled_dark',
-            size: 'large',
-            text: 'continue_with', // Render "Continue with Google"
-            shape: 'rectangular',
-            logo_alignment: 'left',
-            width: googleBtnContainerRef.current.offsetWidth || 354
-          }
-        );
-        console.log('[AuthPage] Google Sign-In button rendered successfully');
-      } catch (err) {
-        console.error("[AuthPage] Google Sign-In button render failed:", err);
-      }
-    }
-  }, [isLogin, isGoogleScriptLoaded, googleClientId]); // Re-render conditionally when switching tabs
-
-  const handleGoogleCredentialResponse = async (response) => {
-    console.log('[AuthPage] Google credential received, processing...');
-    setError('');
-    setIsSubmitting(true);
-    try {
-      const user = await loginWithGoogle(response.credential);
-      if (user) {
-        console.log('[AuthPage] Google login successful, user:', user);
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/order');
-        }
-      } else {
-        console.warn('[AuthPage] Google login returned null user');
-        setError('Google Authentication was rejected by the server.');
-      }
-    } catch (err) {
-      console.error('[AuthPage] Google authentication error:', err);
-      setError(err.message || 'Google Authentication failed.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -171,9 +74,6 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
     }
   };
 
-  const handlePlaceholderClick = () => {
-    alert("Google Authentication is in sandbox/setup mode. Please specify GOOGLE_CLIENT_ID in server/.env to activate live Google login!");
-  };
 
   return (
     <div className="auth-page-container">
@@ -253,34 +153,6 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
           </button>
         </form>
 
-        <div className="auth-divider">
-          <span>or</span>
-        </div>
-
-        <div className="google-auth-section">
-          {googleClientId ? (
-            <div 
-              ref={googleBtnContainerRef} 
-              id="google-signin-button" 
-              className="google-signin-btn-container"
-              style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
-            ></div>
-          ) : (
-            <button 
-              type="button" 
-              className="btn-google-fallback"
-              onClick={handlePlaceholderClick}
-            >
-              <svg className="google-logo-svg" viewBox="0 0 24 24" width="18" height="18">
-                <path fill="#EA4335" d="M12 5.04c1.67 0 3.2.58 4.4 1.7l3.28-3.28C17.7 1.58 15 .75 12 .75 7.3.75 3.33 3.4 1.34 7.28l3.96 3.06C6.27 7.26 8.9 5.04 12 5.04z" />
-                <path fill="#4285F4" d="M23.45 12.3c0-.82-.07-1.6-.22-2.3H12v4.4h6.42c-.27 1.45-1.1 2.68-2.3 3.47l3.6 2.8c2.1-1.93 3.32-4.78 3.32-8.37z" />
-                <path fill="#FBBC05" d="M5.3 14.78c-.24-.72-.37-1.5-.37-2.3s.13-1.58.37-2.3L1.34 7.28C.48 9 0 10.95 0 13s.48 4 1.34 5.72l3.96-2.94z" />
-                <path fill="#34A853" d="M12 23.25c3.24 0 5.95-1.07 7.93-2.9l-3.6-2.8c-1.1.74-2.5 1.18-4.33 1.18-3.1 0-5.73-2.22-6.7-5.32L1.34 16.5C3.33 20.35 7.3 23.25 12 23.25z" />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-          )}
-        </div>
 
         <div className="auth-footer">
           <p className="text-dim">
