@@ -26,24 +26,36 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
   useEffect(() => {
     const fetchClientIdAndSetup = async () => {
       try {
+        console.log('[AuthPage] Fetching Google Client ID from backend...');
         const { clientId } = await api.getGoogleClientId();
+        console.log('[AuthPage] Google Client ID received:', clientId ? `${clientId.substring(0, 20)}...` : 'empty');
         if (clientId) {
           setGoogleClientId(clientId);
           
           // Check if Google GSI client is already loaded, otherwise load it dynamically
           if (window.google) {
+            console.log('[AuthPage] Google GSI client already loaded');
             setIsGoogleScriptLoaded(true);
           } else {
+            console.log('[AuthPage] Loading Google GSI script dynamically...');
             const script = document.createElement('script');
             script.src = 'https://accounts.google.com/gsi/client';
             script.async = true;
             script.defer = true;
-            script.onload = () => setIsGoogleScriptLoaded(true);
+            script.onload = () => {
+              console.log('[AuthPage] Google GSI script loaded successfully');
+              setIsGoogleScriptLoaded(true);
+            };
+            script.onerror = () => {
+              console.error('[AuthPage] Failed to load Google GSI script');
+            };
             document.body.appendChild(script);
           }
+        } else {
+          console.warn('[AuthPage] Google Client ID is empty - Google auth will be disabled');
         }
       } catch (err) {
-        console.error("Failed to fetch Google Client ID from backend:", err);
+        console.error("[AuthPage] Failed to fetch Google Client ID from backend:", err);
       }
     };
     fetchClientIdAndSetup();
@@ -53,6 +65,7 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
   useEffect(() => {
     if (isGoogleScriptLoaded && googleClientId && googleBtnContainerRef.current) {
       try {
+        console.log('[AuthPage] Initializing Google Sign-In button...');
         /* global google */
         google.accounts.id.initialize({
           client_id: googleClientId,
@@ -73,27 +86,32 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
             width: googleBtnContainerRef.current.offsetWidth || 354
           }
         );
+        console.log('[AuthPage] Google Sign-In button rendered successfully');
       } catch (err) {
-        console.error("Google Sign-In button render failed:", err);
+        console.error("[AuthPage] Google Sign-In button render failed:", err);
       }
     }
   }, [isLogin, isGoogleScriptLoaded, googleClientId]); // Re-render conditionally when switching tabs
 
   const handleGoogleCredentialResponse = async (response) => {
+    console.log('[AuthPage] Google credential received, processing...');
     setError('');
     setIsSubmitting(true);
     try {
       const user = await loginWithGoogle(response.credential);
       if (user) {
+        console.log('[AuthPage] Google login successful, user:', user);
         if (user.role === 'admin') {
           navigate('/admin');
         } else {
           navigate('/order');
         }
       } else {
+        console.warn('[AuthPage] Google login returned null user');
         setError('Google Authentication was rejected by the server.');
       }
     } catch (err) {
+      console.error('[AuthPage] Google authentication error:', err);
       setError(err.message || 'Google Authentication failed.');
     } finally {
       setIsSubmitting(false);
@@ -112,8 +130,10 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
     
     try {
       if (isLogin) {
+        console.log('Attempting login with username:', formData.username);
         const user = await login(formData.username, formData.password);
         if (user) {
+          console.log('Login successful, user:', user);
           if (user.role === 'admin') {
             navigate('/admin');
           } else {
@@ -134,14 +154,17 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
           return;
         }
         
+        console.log('Attempting signup with username:', formData.username);
         const result = await signup(formData.username, formData.password);
         if (result.success) {
+          console.log('Signup successful');
           navigate('/order');
         } else {
           setError(result.message);
         }
       }
     } catch (err) {
+      console.error('Authentication error:', err);
       setError(err.message || 'Authentication error occurred.');
     } finally {
       setIsSubmitting(false);

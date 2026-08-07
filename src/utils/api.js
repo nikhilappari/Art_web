@@ -8,6 +8,7 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   if (token) {
     headers['Authorization'] = 'Bearer ' + token;
+    console.log('[API] Adding Authorization header, token length:', token.length);
   }
   return headers;
 };

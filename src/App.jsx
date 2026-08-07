@@ -46,10 +46,13 @@ function App() {
       try {
         // 1. Check if token exists to resume session
         const token = localStorage.getItem('token');
+        console.log('App init: Token exists:', !!token, token ? 'length=' + token.length : '');
         let activeUser = null;
         if (token) {
           try {
+            console.log('App init: Verifying token with /api/auth/me');
             const data = await api.get('/api/auth/me');
+            console.log('App init: Token verification success, user:', data.user);
             setCurrentUser(data.user);
             activeUser = data.user;
           } catch (err) {
@@ -60,6 +63,7 @@ function App() {
         }
 
         // 2. Fetch artworks, transformation settings, and pricing settings
+        console.log('App init: Fetching content...');
         const [loadedArtworks, loadedTransformation, loadedPricing] = await Promise.all([
           api.get('/api/artworks'),
           api.get('/api/transformation'),
@@ -67,6 +71,7 @@ function App() {
         ]);
 
         setArtworks(loadedArtworks);
+        console.log('App init: Loaded artworks:', loadedArtworks.length);
         if (loadedTransformation && loadedTransformation.before) {
           setTransformation(loadedTransformation);
         }
@@ -76,9 +81,12 @@ function App() {
 
         // 3. Fetch user orders if logged in
         if (activeUser) {
+          console.log('App init: Fetching orders for user:', activeUser.username);
           const loadedRequests = await api.get('/api/requests');
           setClientRequests(loadedRequests);
+          console.log('App init: Loaded orders:', loadedRequests.length);
         }
+        console.log('App init: Complete');
       } catch (error) {
         console.error("Failed to load backend data:", error);
       } finally {
@@ -196,11 +204,16 @@ function App() {
 
   const login = async (username, password) => {
     try {
+      console.log('API: Posting login request for username:', username);
       const data = await api.post('/api/auth/login', { username, password });
+      console.log('API: Login response received:', data);
       localStorage.setItem('token', data.token);
+      console.log('Token saved to localStorage, length:', data.token.length);
       setCurrentUser(data.user);
+      console.log('Current user set to:', data.user);
       return data.user;
     } catch (e) {
+      console.error("Login API error:", e);
       alert("Login Failed: " + e.message);
       return null;
     }
@@ -208,22 +221,32 @@ function App() {
 
   const signup = async (username, password) => {
     try {
+      console.log('API: Posting signup request for username:', username);
       const data = await api.post('/api/auth/signup', { username, password });
+      console.log('API: Signup response received:', data);
       localStorage.setItem('token', data.token);
+      console.log('Token saved to localStorage, length:', data.token.length);
       setCurrentUser(data.user);
+      console.log('Current user set to:', data.user);
       return { success: true };
     } catch (e) {
+      console.error("Signup API error:", e);
       return { success: false, message: e.message };
     }
   };
 
   const loginWithGoogle = async (credential) => {
     try {
+      console.log('[App] Processing Google login with credential, length:', credential.length);
       const data = await api.loginWithGoogle(credential);
+      console.log('[App] Google login API response received:', data);
       localStorage.setItem('token', data.token);
+      console.log('[App] Google token saved to localStorage, length:', data.token.length);
       setCurrentUser(data.user);
+      console.log('[App] Current user set to:', data.user);
       return data.user;
     } catch (e) {
+      console.error("[App] Google login API error:", e);
       alert("Google Login Failed: " + e.message);
       return null;
     }
