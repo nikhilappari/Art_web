@@ -8,11 +8,24 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { fileURLToPath } from 'url';
-import { getDb, initDb } from './db.js';
 import { OAuth2Client } from 'google-auth-library';
 
 // Load environment variables
 dotenv.config();
+
+// Auto-detect database: PostgreSQL if DATABASE_URL is set, otherwise SQLite
+let getDb, initDb;
+if (process.env.DATABASE_URL) {
+  console.log('🗄️  Using PostgreSQL (DATABASE_URL detected)');
+  const dbModule = await import('./db-postgres.js');
+  getDb = dbModule.getDb;
+  initDb = dbModule.initDb;
+} else {
+  console.log('📁 Using SQLite (DATABASE_URL not set)');
+  const dbModule = await import('./db.js');
+  getDb = dbModule.getDb;
+  initDb = dbModule.initDb;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
