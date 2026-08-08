@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiCall } from '../utils/api';
+import { api } from '../utils/api';
 import '../styles/AdminSettings.css';
 
 export default function AdminSettings() {
@@ -47,34 +47,21 @@ export default function AdminSettings() {
 
     try {
       // First verify current password
-      const loginRes = await apiCall('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          username: adminInfo.username,
-          password: currentPassword
-        })
+      const loginData = await api.post('/api/auth/login', {
+        username: adminInfo.username,
+        password: currentPassword
       });
 
-      if (!loginRes.ok) {
+      if (!loginData) {
         throw new Error('Current password is incorrect');
       }
 
       // If password verification passed, make change
-      const changeRes = await apiCall('/admin/update-credentials', {
-        method: 'POST',
-        body: JSON.stringify({
-          currentPassword,
-          newUsername: newUsername !== adminInfo.username ? newUsername : null,
-          newPassword: newPassword || null
-        })
+      const data = await api.post('/api/admin/update-credentials', {
+        currentPassword,
+        newUsername: newUsername !== adminInfo.username ? newUsername : null,
+        newPassword: newPassword || null
       });
-
-      if (!changeRes.ok) {
-        const errData = await changeRes.json();
-        throw new Error(errData.message || 'Failed to update credentials');
-      }
-
-      const data = await changeRes.json();
       
       // Update localStorage
       localStorage.setItem('user', JSON.stringify({
