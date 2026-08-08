@@ -39,7 +39,7 @@ if (isCloudinaryConfigured) {
 }
 
 // Ensure local uploads directory exists
-const uploadDir = path.resolve(__dirname, 'public/uploads');
+const uploadDir = process.env.UPLOAD_DIR || path.resolve(__dirname, 'public/uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

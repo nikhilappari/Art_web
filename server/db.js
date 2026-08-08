@@ -8,7 +8,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const dbPath = path.resolve(__dirname, 'database.sqlite');
-
 let dbConnectionPromise = null;
 
 /**
@@ -16,10 +15,14 @@ let dbConnectionPromise = null;
  */
 export async function getDb() {
   if (!dbConnectionPromise) {
-    dbConnectionPromise = open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
+    dbConnectionPromise = (async () => {
+      const dbFolder = process.env.DB_DIR || __dirname;
+      const dbPath = path.resolve(dbFolder, 'database.sqlite');
+      return open({
+        filename: dbPath,
+        driver: sqlite3.Database
+      });
+    })();
   }
 
   return dbConnectionPromise;
