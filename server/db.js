@@ -117,12 +117,15 @@ export async function initDb() {
     )
   `);
 
+  // Clean up old default 'admin' user if present
+  await db.run("DELETE FROM users WHERE username = ?", ["admin"]);
+
   // Seed default admin if not exists
-  const adminExists = await db.get("SELECT * FROM users WHERE username = ?", ["admin"]);
+  const adminExists = await db.get("SELECT * FROM users WHERE username = ?", ["aesthetic_by_nikhil"]);
   if (!adminExists) {
-    const defaultPasswordHash = await bcrypt.hash("admin123", 10);
-    await db.run("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)", ["admin", defaultPasswordHash, "admin"]);
-    console.log("Database seeded with default Admin user ('admin' / 'admin123')");
+    const defaultPasswordHash = await bcrypt.hash("Nikhil@2006", 10);
+    await db.run("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)", ["aesthetic_by_nikhil", defaultPasswordHash, "admin"]);
+    console.log("Database seeded with default Admin user ('aesthetic_by_nikhil' / 'Nikhil@2006')");
   }
 
   // Seed default artworks if empty

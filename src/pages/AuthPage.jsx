@@ -269,7 +269,6 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
               {isLogin ? 'Sign Up' : 'Login'}
             </span>
           </p>
-          {isLogin && <p className="hint-text mt-1">Try admin / admin123</p>}
         </div>
       </div>
     </div>
