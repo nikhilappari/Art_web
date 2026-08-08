@@ -534,6 +534,67 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * Admin: Update Credentials (username/password)
+ * POST /api/admin/update-credentials
+ * Required: currentPassword
+ * Optional: newUsername, newPassword
+ */
+app.post('/api/admin/update-credentials', authenticateToken, async (req, res) => {
+  try {
+    // Only admins can update admin credentials
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can update credentials.' });
+    }
+
+    const { currentPassword, newUsername, newPassword } = req.body;
+
+    if (!currentPassword) {
+      return res.status(400).json({ message: 'Current password is required.' });
+    }
+
+    // Get current admin user
+    const db = await getDb();
+    const user = await db.get("SELECT * FROM users WHERE id = ?", [req.user.id]);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    // Update username if provided
+    if (newUsername && newUsername !== user.username) {
+      const existingUser = await db.get("SELECT * FROM users WHERE username = ?", [newUsername]);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already exists.' });
+      }
+      await db.run("UPDATE users SET username = ? WHERE id = ?", [newUsername, req.user.id]);
+    }
+
+    // Update password if provided
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await db.run("UPDATE users SET password_hash = ? WHERE id = ?", [hashedPassword, req.user.id]);
+    }
+
+    const updatedUser = await db.get("SELECT id, username, role FROM users WHERE id = ?", [req.user.id]);
+    res.json({
+      message: 'Credentials updated successfully.',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Error updating credentials:', error);
+    res.status(500).json({ message: 'Failed to update credentials.' });
+  }
+});
+
 /* ======================================================= */
 
 // Start Server

@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import GalleryPage from './pages/GalleryPage';
 import ExplorePage from './pages/ExplorePage';
 import AdminPage from './pages/AdminPage';
+import AdminSettings from './pages/AdminSettings';
 import AuthPage from './pages/AuthPage';
 import OrderPage from './pages/OrderPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -297,6 +298,12 @@ function App() {
                   clientRequests={clientRequests}
                   updateRequest={updateRequest}
                 />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/settings" element={
+              <ProtectedRoute user={currentUser} allowedRoles={['admin']}>
+                <AdminSettings />
               </ProtectedRoute>
             } />
 
