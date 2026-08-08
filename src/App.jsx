@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import GalleryPage from './pages/GalleryPage';
+import ArtworksPage from './pages/ArtworksPage';
 import AdminPage from './pages/AdminPage';
 import AuthPage from './pages/AuthPage';
 import OrderPage from './pages/OrderPage';
@@ -255,6 +256,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage transformation={transformation} pricing={pricing} addRequest={addRequest} user={currentUser} />} />
             <Route path="/gallery" element={<GalleryPage artworks={artworks} />} />
+            <Route path="/artworks" element={<ArtworksPage artworks={artworks} />} />
             <Route path="/auth" element={<AuthPage login={login} signup={signup} loginWithGoogle={loginWithGoogle} />} />
             
             <Route path="/admin" element={

@@ -9,20 +9,20 @@ const __dirname = path.dirname(__filename);
 
 const dbPath = path.resolve(__dirname, 'database.sqlite');
 
-let dbConnection = null;
+let dbConnectionPromise = null;
 
 /**
  * Returns the open SQLite database connection singleton.
  */
 export async function getDb() {
-  if (dbConnection) return dbConnection;
+  if (!dbConnectionPromise) {
+    dbConnectionPromise = open({
+      filename: dbPath,
+      driver: sqlite3.Database
+    });
+  }
 
-  dbConnection = await open({
-    filename: dbPath,
-    driver: sqlite3.Database
-  });
-
-  return dbConnection;
+  return dbConnectionPromise;
 }
 
 /**
@@ -59,9 +59,24 @@ export async function initDb() {
       price INTEGER NOT NULL,
       image TEXT NOT NULL,
       description TEXT,
-      status TEXT NOT NULL DEFAULT 'Published'
+      status TEXT NOT NULL DEFAULT 'Published',
+      size TEXT DEFAULT 'A4',
+      orientation TEXT DEFAULT 'Vertical'
     )
   `);
+
+  // Migrate existing database for artworks new columns: size and orientation
+  try {
+    await db.exec("ALTER TABLE artworks ADD COLUMN size TEXT DEFAULT 'A4'");
+  } catch (e) {
+    // Column already exists, safe to ignore
+  }
+
+  try {
+    await db.exec("ALTER TABLE artworks ADD COLUMN orientation TEXT DEFAULT 'Vertical'");
+  } catch (e) {
+    // Column already exists, safe to ignore
+  }
 
   // Create Transformation Table
   await db.exec(`

@@ -24,13 +24,13 @@ const HomePage = ({ transformation, pricing, addRequest, user }) => {
   }, [hash]);
 
   return (
-    <>
+    <div className="page-fade-in">
       <Hero />
       <BeforeAfter transformation={transformation} />
       <About />
       <RevisionPolicy />
       <Testimonials />
-    </>
+    </div>
   );
 };
 

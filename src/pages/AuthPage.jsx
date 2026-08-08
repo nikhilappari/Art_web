@@ -153,7 +153,7 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
   };
 
   return (
-    <div className="auth-page-container">
+    <div className="auth-page-container page-fade-in">
       <div className="auth-card glass">
         <div className="auth-tabs">
           <button 
@@ -181,7 +181,7 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
             : 'Join our community of art lovers and get your custom sketch.'}
         </p>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form key={isLogin ? 'login' : 'signup'} onSubmit={handleSubmit} className="auth-form module-fade-in">
           <div className="form-group">
             <label>Username / Email</label>
             <input 

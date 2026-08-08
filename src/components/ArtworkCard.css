@@ -18,8 +18,17 @@
 .artwork-image-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 125%; /* 4:5 Aspect Ratio */
   overflow: hidden;
+  background: rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.artwork-image-wrapper.vertical {
+  padding-top: 125%; /* 4:5 Portrait Aspect Ratio for Vertical sketches */
+}
+
+.artwork-image-wrapper.horizontal {
+  padding-top: 70%; /* ~1.43 Landscape Aspect Ratio for Horizontal sketches */
 }
 
 .artwork-image {
@@ -28,25 +37,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Fits the portrait/landscape frame exactly without bars */
   transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .artwork-card:hover .artwork-image {
   transform: scale(1.05);
-}
-
-.artwork-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: var(--accent-gold);
-  color: white;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .artwork-info {

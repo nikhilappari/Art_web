@@ -46,7 +46,7 @@ const Navbar = ({ user, logout }) => {
         </Link>
         <ul className="nav-links">
           <li><Link to="/" onClick={handleHomeClick}>Home</Link></li>
-          <li><Link to="/gallery">Artworks</Link></li>
+          <li><Link to="/artworks">Artworks</Link></li>
           <li><Link to="/#about" onClick={handleAboutClick}>About</Link></li>
           
           {user ? (

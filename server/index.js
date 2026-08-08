@@ -271,18 +271,44 @@ app.get('/api/artworks', async (req, res) => {
 });
 
 app.post('/api/artworks', authenticateToken, requireAdmin, async (req, res) => {
-  const { title, type, category, price, image, description, status } = req.body;
-  if (!title || !type || !category || !price || !image) {
+  const { title, type, category, price, image, description, status, size, orientation } = req.body;
+  if (!title || !type || !category || price === undefined || !image) {
     return res.status(400).json({ message: 'Required fields missing.' });
+  }
+
+  const parsedPrice = parseInt(price);
+  if (isNaN(parsedPrice)) {
+    return res.status(400).json({ message: 'Price must be a valid number.' });
   }
 
   try {
     const db = await getDb();
     const result = await db.run(
-      "INSERT INTO artworks (title, type, category, price, image, description, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [title, type, category, parseInt(price), image, description || '', status || 'Published']
+      "INSERT INTO artworks (title, type, category, price, image, description, status, size, orientation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        title, 
+        type, 
+        category, 
+        parsedPrice, 
+        image, 
+        description || '', 
+        status || 'Published',
+        size || 'A4',
+        orientation || 'Vertical'
+      ]
     );
-    const newArt = { id: result.lastID, title, type, category, price, image, description, status: status || 'Published' };
+    const newArt = { 
+      id: result.lastID, 
+      title, 
+      type, 
+      category, 
+      price: parsedPrice, 
+      image, 
+      description, 
+      status: status || 'Published',
+      size: size || 'A4',
+      orientation: orientation || 'Vertical'
+    };
     return res.status(201).json(newArt);
   } catch (error) {
     console.error(error);
@@ -292,7 +318,7 @@ app.post('/api/artworks', authenticateToken, requireAdmin, async (req, res) => {
 
 app.put('/api/artworks/:id', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const { title, type, category, price, image, description, status } = req.body;
+  const { title, type, category, price, image, description, status, size, orientation } = req.body;
 
   try {
     const db = await getDb();
@@ -301,18 +327,28 @@ app.put('/api/artworks/:id', authenticateToken, requireAdmin, async (req, res) =
       return res.status(404).json({ message: 'Artwork not found.' });
     }
 
+    let parsedPrice = existing.price;
+    if (price !== undefined) {
+      parsedPrice = parseInt(price);
+      if (isNaN(parsedPrice)) {
+        return res.status(400).json({ message: 'Price must be a valid number.' });
+      }
+    }
+
     await db.run(
       `UPDATE artworks 
-       SET title = ?, type = ?, category = ?, price = ?, image = ?, description = ?, status = ? 
+       SET title = ?, type = ?, category = ?, price = ?, image = ?, description = ?, status = ?, size = ?, orientation = ? 
        WHERE id = ?`,
       [
         title !== undefined ? title : existing.title,
         type !== undefined ? type : existing.type,
         category !== undefined ? category : existing.category,
-        price !== undefined ? parseInt(price) : existing.price,
+        parsedPrice,
         image !== undefined ? image : existing.image,
         description !== undefined ? description : existing.description,
         status !== undefined ? status : existing.status,
+        size !== undefined ? size : existing.size,
+        orientation !== undefined ? orientation : existing.orientation,
         id
       ]
     );
@@ -444,6 +480,14 @@ app.post('/api/requests', authenticateToken, async (req, res) => {
   const id = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
   const date = new Date().toISOString().split('T')[0];
 
+  let parsedPrice = 0;
+  if (price !== undefined && price !== null) {
+    const temp = parseInt(price);
+    if (!isNaN(temp)) {
+      parsedPrice = temp;
+    }
+  }
+
   try {
     const db = await getDb();
     await db.run(
@@ -455,7 +499,7 @@ app.post('/api/requests', authenticateToken, async (req, res) => {
         type,
         image,
         JSON.stringify(images),
-        price ? parseInt(price) : 0,
+        parsedPrice,
         frame || 'Without Frame',
         date
       ]
@@ -481,6 +525,14 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Request order not found.' });
     }
 
+    let parsedPrice = existing.price;
+    if (price !== undefined) {
+      parsedPrice = parseInt(price);
+      if (isNaN(parsedPrice)) {
+        return res.status(400).json({ message: 'Price must be a valid number.' });
+      }
+    }
+
     // Role-based editing restriction
     if (req.user.role === 'admin') {
       await db.run(
@@ -489,7 +541,7 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
          WHERE id = ?`,
         [
           status !== undefined ? status : existing.status,
-          price !== undefined ? parseInt(price) : existing.price,
+          parsedPrice,
           frame !== undefined ? frame : existing.frame,
           customerApproval !== undefined ? customerApproval : existing.customerApproval,
           adminNote !== undefined ? adminNote : existing.adminNote,

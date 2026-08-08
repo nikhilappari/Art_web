@@ -27,6 +27,22 @@ const RequestSketch = ({ pricing, addRequest, user }) => {
         console.error("Failed to parse pending order.");
       }
     }
+
+    // Also check for commission preset from gallery
+    const preset = localStorage.getItem('commissionPreset');
+    if (preset) {
+      try {
+        const parsed = JSON.parse(preset);
+        setFormData(prev => ({
+          ...prev,
+          style: parsed.style || prev.style,
+          type: parsed.type || prev.type
+        }));
+        localStorage.removeItem('commissionPreset');
+      } catch (e) {
+        console.error("Failed to parse commission preset:", e);
+      }
+    }
   }, []);
 
   const [estimatedPrice, setEstimatedPrice] = useState(0);

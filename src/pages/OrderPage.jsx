@@ -25,7 +25,7 @@ const OrderPage = ({ user, pricing, addRequest, clientRequests = [], updateReque
   const completedCount = myRequests.filter(req => req.status === 'Completed').length;
 
   return (
-    <div className="order-page-container">
+    <div className="order-page-container page-fade-in">
       <div className="container">
         <header className="page-header text-center mb-4">
           <h1 className="serif display-1">{user ? `Welcome, ${user.username}` : 'Request a Custom Portrait'}</h1>
@@ -59,9 +59,11 @@ const OrderPage = ({ user, pricing, addRequest, clientRequests = [], updateReque
 
         {/* Main Content Area */}
         {activeTab === 'new' ? (
-          <RequestSketch pricing={pricing} addRequest={addRequest} user={user} />
+          <div key="new-request" className="module-fade-in">
+            <RequestSketch pricing={pricing} addRequest={addRequest} user={user} />
+          </div>
         ) : (
-          <div className="customer-dashboard-wrapper">
+          <div key="order-history" className="customer-dashboard-wrapper module-fade-in">
             {/* Summary statistics */}
             <div className="order-stats-overview">
               <div className="order-stat-card glass">

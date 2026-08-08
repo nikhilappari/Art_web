@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import Gallery from '../components/Gallery';
+import ArtworksGrid from '../components/ArtworksGrid';
 
-const GalleryPage = ({ artworks }) => {
+const ArtworksPage = ({ artworks }) => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -9,9 +9,9 @@ const GalleryPage = ({ artworks }) => {
   return (
     <div className="gallery-page page-fade-in">
       <div style={{ height: '80px' }}></div> {/* Spacer for fixed navbar */}
-      <Gallery artworks={artworks} />
+      <ArtworksGrid artworks={artworks} />
     </div>
   );
 };
 
-export default GalleryPage;
+export default ArtworksPage;

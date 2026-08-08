@@ -38,7 +38,7 @@ const ArtworkCard = ({ artwork }) => {
           transform: `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)` 
         }}
       >
-        <div className="artwork-image-wrapper">
+        <div className={`artwork-image-wrapper ${(artwork.orientation || 'Vertical').toLowerCase()}`}>
           <img src={artwork.image} alt={artwork.title} className="artwork-image" />
         </div>
         <div className="artwork-info">

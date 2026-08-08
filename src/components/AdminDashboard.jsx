@@ -27,7 +27,9 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
     status: 'Published',
     image: '',
     description: '',
-    type: 'Black & White' // Mapping status to type for the gallery
+    type: 'Black & White', // Mapping status to type for the gallery
+    size: 'A4',
+    orientation: 'Vertical'
   });
 
   const handleDelete = (id) => {
@@ -99,7 +101,7 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
   const closeModal = () => {
     setShowUploadModal(false);
     setEditingItem(null);
-    setNewSketch({ title: '', category: 'Charcoal', price: '', status: 'Published', image: '', description: '', type: 'Black & White' });
+    setNewSketch({ title: '', category: 'Charcoal', price: '', status: 'Published', image: '', description: '', type: 'Black & White', size: 'A4', orientation: 'Vertical' });
   };
 
   const stats = [
@@ -127,7 +129,6 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
         <nav className="admin-nav">
           <button className={`admin-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
           <button className={`admin-nav-item ${activeTab === 'sketches' ? 'active' : ''}`} onClick={() => setActiveTab('sketches')}>Manage Sketches</button>
-          <button className={`admin-nav-item ${activeTab === 'transformation' ? 'active' : ''}`} onClick={() => setActiveTab('transformation')}>Transformation</button>
           <button className={`admin-nav-item ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => setActiveTab('requests')}>Client Requests</button>
           <button className={`admin-nav-item ${activeTab === 'pricing' ? 'active' : ''}`} onClick={() => setActiveTab('pricing')}>Pricing & Settings</button>
         </nav>
@@ -193,7 +194,12 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                       ) : (
                         <div style={{ width: '48px', height: '48px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid var(--border-color)' }}></div>
                       )}
-                      <span className="semibold">{item.title}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="semibold">{item.title}</span>
+                        <span className="text-dim" style={{ fontSize: '0.72rem', marginTop: '2px', color: 'var(--text-secondary)' }}>
+                          {item.size || 'A4'} • {item.orientation || 'Vertical'}
+                        </span>
+                      </div>
                     </div>
                     <span>{item.category}</span>
                     <span>₹{item.price}</span>
@@ -209,118 +215,6 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
           </div>
         )}
 
-        {activeTab === 'transformation' && (
-          <div className="admin-tab-content">
-            <h2 className="admin-page-title">Home Transformation</h2>
-            <div className="admin-card glass max-w-600">
-              <h4 className="card-header">Manage Hero Transformation Section</h4>
-              <p className="text-dim mb-2">Update the text and images displayed on your homepage.</p>
-              
-              <div className="form-group mb-2">
-                <label>Section Title</label>
-                <input 
-                  type="text" 
-                  value={transformation.title} 
-                  onChange={(e) => setTransformation(prev => ({...prev, title: e.target.value}))} 
-                />
-              </div>
-
-              <div className="form-group mb-2">
-                <label>Section Subtitle</label>
-                <textarea 
-                  rows="2"
-                  value={transformation.subtitle} 
-                  onChange={(e) => setTransformation(prev => ({...prev, subtitle: e.target.value}))} 
-                  className="admin-textarea"
-                ></textarea>
-              </div>
-
-              <div className="transformation-manager-grid mt-2">
-                <div className="form-group">
-                  <label>Reference Photo (Before)</label>
-                  <div className="file-upload-wrapper">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => handleTransformationChange('before', e)} 
-                      className="file-input" 
-                      id="before-upload" 
-                      disabled={isUploadingBefore}
-                    />
-                    <label htmlFor="before-upload" className="file-label" style={{ opacity: isUploadingBefore ? 0.6 : 1, cursor: isUploadingBefore ? 'not-allowed' : 'pointer' }}>
-                      {isUploadingBefore ? 'Uploading...' : 'Change Reference'}
-                    </label>
-                    <div className="image-preview-container mini" style={{ position: 'relative' }}>
-                      {isUploadingBefore && (
-                        <div className="mini-upload-loader">
-                          <div className="spinner-mini"></div>
-                        </div>
-                      )}
-                      <img src={transformation.before} alt="Before" className="upload-preview" style={{ opacity: isUploadingBefore ? 0.3 : 1 }} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Sketch Photo (After)</label>
-                  <div className="file-upload-wrapper">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => handleTransformationChange('after', e)} 
-                      className="file-input" 
-                      id="after-upload" 
-                      disabled={isUploadingAfter}
-                    />
-                    <label htmlFor="after-upload" className="file-label" style={{ opacity: isUploadingAfter ? 0.6 : 1, cursor: isUploadingAfter ? 'not-allowed' : 'pointer' }}>
-                      {isUploadingAfter ? 'Uploading...' : 'Change Sketch'}
-                    </label>
-                    <div className="image-preview-container mini" style={{ position: 'relative' }}>
-                      {isUploadingAfter && (
-                        <div className="mini-upload-loader">
-                          <div className="spinner-mini"></div>
-                        </div>
-                      )}
-                      <img src={transformation.after} alt="After" className="upload-preview" style={{ opacity: isUploadingAfter ? 0.3 : 1 }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <button 
-                className="btn-primary mt-2" 
-                onClick={async (e) => {
-                  const btn = e.currentTarget;
-                  const originalText = btn.innerText;
-                  btn.innerText = "Saving Changes...";
-                  btn.disabled = true;
-                  btn.style.opacity = "0.7";
-                  
-                  try {
-                    if (saveTransformation) {
-                      await saveTransformation(transformation);
-                    }
-                    btn.innerText = "Changes Saved Live!";
-                    btn.style.background = "#008080";
-                    btn.style.color = "white";
-                  } catch (err) {
-                    alert("Failed to save transformation settings: " + err.message);
-                    btn.innerText = "Error Saving";
-                  }
-                  
-                  setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    btn.style.opacity = "1";
-                    btn.style.background = "";
-                    btn.style.color = "";
-                  }, 2000);
-                }}
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* ... requests and pricing tabs remain same ... */}
         {activeTab === 'requests' && (
@@ -639,6 +533,27 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                   >
                     <option>Published</option>
                     <option>Draft</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Dimensions / Size</label>
+                  <select 
+                    value={newSketch.size || 'A4'}
+                    onChange={(e) => setNewSketch({...newSketch, size: e.target.value})}
+                  >
+                    <option value="A4">A4 Size</option>
+                    <option value="A3">A3 Size</option>
+                    <option value="A4 & A3">Both A4 & A3</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Canvas Orientation</label>
+                  <select 
+                    value={newSketch.orientation || 'Vertical'}
+                    onChange={(e) => setNewSketch({...newSketch, orientation: e.target.value})}
+                  >
+                    <option value="Vertical">Vertical (Portrait)</option>
+                    <option value="Horizontal">Horizontal (Landscape)</option>
                   </select>
                 </div>
                 <div className="form-group full-width">

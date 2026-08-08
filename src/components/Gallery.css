@@ -1,14 +1,36 @@
+/* Gallery Section Layout */
+.gallery-section {
+  position: relative;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+.gallery-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--accent-gold);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
 .gallery-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 4rem;
+  align-items: center;
+  margin-bottom: 3.5rem;
+  position: relative;
+  z-index: 10;
 }
 
-.section-title {
-  font-size: 3rem;
+.gallery-controls {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
 }
 
+/* Filter Tabs */
 .filter-tabs {
   display: flex;
   gap: 2rem;
@@ -17,8 +39,8 @@
 
 .filter-tab {
   padding: 0.8rem 0;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-secondary);
@@ -33,7 +55,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--accent-amber);
+  background: var(--accent-gold);
   transition: var(--transition-fast);
 }
 
@@ -49,18 +71,482 @@
   color: var(--text-primary);
 }
 
-.artwork-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+/* Layout Switcher */
+.layout-toggle-container {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  padding: 3px;
+  border-radius: 30px;
 }
 
+.layout-toggle-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 20px;
+  color: var(--text-secondary);
+  transition: var(--transition-smooth);
+}
+
+.layout-toggle-btn.active {
+  background: var(--accent-gold);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.layout-toggle-btn:hover:not(.active) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* 1. Cinematic Spotlight View Styles */
+.spotlight-outer-container {
+  position: relative;
+  margin-bottom: 5rem;
+}
+
+/* Glassmorphism ambient glow behind frame */
+.ambient-glow {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  width: 50%;
+  height: 70%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(120px) opacity(0.35);
+  pointer-events: none;
+  z-index: 0;
+  transition: background-image 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 50%;
+}
+
+.spotlight-wrapper {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  padding: 4rem;
+  border-radius: 24px;
+}
+
+/* Spotlight Left: Frame Showcase */
+.spotlight-frame-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1200px;
+}
+
+.spotlight-frame {
+  cursor: pointer;
+  background: #141f1f;
+  padding: 0.6rem;
+  border: 8px solid #1a2929;
+  outline: 1px solid rgba(215, 180, 106, 0.25);
+  box-shadow: 
+    0 30px 60px -15px rgba(0, 0, 0, 0.85),
+    0 15px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 0 40px rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spotlight-frame.vertical {
+  max-width: 440px;
+  width: 100%;
+}
+
+.spotlight-frame.horizontal {
+  max-width: 580px;
+  width: 100%;
+}
+
+.spotlight-frame:hover {
+  transform: rotateY(-5deg) rotateX(3deg) scale(1.02);
+  outline-color: var(--accent-gold);
+}
+
+.frame-matte {
+  position: relative;
+  background: #f7f5f0; /* Museum paper background */
+  padding: 1.2rem;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.frame-image {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  filter: grayscale(5%) contrast(102%);
+}
+
+.frame-spotlight-reflection {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+/* Spotlight Right: Details description */
+.spotlight-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  z-index: 3;
+}
+
+.details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.artwork-meta-tag {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent-gold);
+}
+
+.artwork-title-large {
+  font-size: 2.8rem;
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.artwork-price-tag {
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+.artwork-narrative {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.artwork-specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.2rem 0;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.spec-label {
+  color: var(--text-secondary);
+}
+
+.spec-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.spotlight-actions {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.spotlight-actions .btn-primary {
+  flex-grow: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.spotlight-actions .btn-secondary {
+  padding: 1rem 2rem;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.spotlight-actions .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--text-primary);
+}
+
+/* Spotlight Navigation Arrows */
+.spotlight-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.nav-arrow-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: var(--transition-smooth);
+}
+
+.nav-arrow-btn:hover {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.nav-fraction {
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+/* Horizontal Catalogue strip (Filmstrip) */
+.filmstrip-container {
+  margin-top: 4rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 2.5rem;
+  position: relative;
+  z-index: 5;
+}
+
+.filmstrip-title {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.filmstrip-scroll {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0 1.5rem;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-gold) rgba(255, 255, 255, 0.02);
+}
+
+.filmstrip-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.filmstrip-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.filmstrip-scroll::-webkit-scrollbar-thumb {
+  background: rgba(215, 180, 106, 0.4);
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.filmstrip-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+.filmstrip-card {
+  min-width: 100px;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.filmstrip-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(215, 180, 106, 0.5);
+}
+
+.filmstrip-card.active {
+  border-color: var(--accent-gold);
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(215, 180, 106, 0.3);
+}
+
+.filmstrip-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.filmstrip-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.filmstrip-card:hover .filmstrip-overlay,
+.filmstrip-card.active .filmstrip-overlay {
+  opacity: 0;
+}
+
+.filmstrip-index {
+  color: white;
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 0.9rem;
+}
+
+/* 2. Exhibition Masonry Grid Styles */
+.exhibition-masonry-wrapper {
+  position: relative;
+}
+
+.masonry-grid {
+  column-count: 3;
+  column-gap: 1.5rem;
+}
+
+.masonry-card {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s;
+  box-shadow: var(--shadow-sm);
+}
+
+.masonry-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 128, 128, 0.1);
+}
+
+.masonry-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.masonry-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.masonry-card:hover .masonry-image {
+  transform: scale(1.05);
+}
+
+/* Hover reveal overlay */
+.masonry-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 18, 18, 0.95) 0%, rgba(10, 18, 18, 0.4) 60%, rgba(10, 18, 18, 0) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.masonry-card:hover .masonry-hover-overlay {
+  opacity: 1;
+}
+
+.hover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  transform: translateY(15px);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.masonry-card:hover .hover-content {
+  transform: translateY(0);
+}
+
+.hover-category {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.hover-title {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.hover-price {
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.btn-inspect-mini {
+  align-self: flex-start;
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: white;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  transition: var(--transition-fast);
+}
+
+.btn-inspect-mini:hover {
+  background: white;
+  color: #0a1212;
+}
+
+/* Empty gallery */
 .empty-gallery {
-  grid-column: 1 / -1;
-  padding: 5rem;
+  padding: 8rem 0;
   text-align: center;
   border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   border: 1px dashed var(--border-color);
+}
+
+.empty-gallery span {
+  font-size: 3rem;
 }
 
 .empty-gallery p {
@@ -70,9 +556,15 @@
   letter-spacing: 2px;
 }
 
+/* Responsive adjustments */
 @media (max-width: 1024px) {
-  .artwork-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .spotlight-wrapper {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: 3rem;
+  }
+  .masonry-grid {
+    column-count: 2;
   }
 }
 
@@ -80,10 +572,14 @@
   .gallery-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 2rem;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
   }
-  .artwork-grid {
-    grid-template-columns: 1fr;
+  .gallery-controls {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 1.5rem;
+    width: 100%;
   }
   .filter-tabs {
     width: 100%;
@@ -91,7 +587,28 @@
     white-space: nowrap;
     padding-bottom: 0.5rem;
   }
-  .section-title {
-    font-size: 2.2rem;
+  .spotlight-wrapper {
+    padding: 1.5rem;
+  }
+  .frame-matte {
+    padding: 1.5rem;
+  }
+  .artwork-title-large {
+    font-size: 2rem;
+  }
+  .spotlight-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .masonry-grid {
+    column-count: 1;
+  }
+  .masonry-hover-overlay {
+    background: rgba(10, 18, 18, 0.7);
+    opacity: 1;
+    padding: 1.5rem;
+  }
+  .hover-content {
+    transform: translateY(0);
   }
 }
