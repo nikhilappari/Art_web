@@ -3,25 +3,111 @@ import { open } from 'sqlite';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
+import pg from 'pg';
 
+const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.resolve(__dirname, 'database.sqlite');
+let dbInstance = null;
 let dbConnectionPromise = null;
 
+// Helper to convert SQLite SQL placeholders "?" into PostgreSQL "$1, $2, ..."
+function convertSql(sql) {
+  let index = 1;
+  return sql.replace(/\?/g, () => `$${index++}`);
+}
+
+class DatabaseWrapper {
+  constructor(isPg, dbClient) {
+    this.isPg = isPg;
+    this.client = dbClient;
+  }
+
+  async get(sql, params = []) {
+    if (this.isPg) {
+      const sqlToRun = convertSql(sql);
+      const res = await this.client.query(sqlToRun, params);
+      const row = res.rows[0] || null;
+      if (row) {
+        for (const key of Object.keys(row)) {
+          if (key.toLowerCase().includes('count') && typeof row[key] === 'string') {
+            row[key] = parseInt(row[key], 10);
+          }
+        }
+      }
+      return row;
+    } else {
+      return this.client.get(sql, params);
+    }
+  }
+
+  async all(sql, params = []) {
+    if (this.isPg) {
+      const sqlToRun = convertSql(sql);
+      const res = await this.client.query(sqlToRun, params);
+      return res.rows.map(row => {
+        for (const key of Object.keys(row)) {
+          if (key.toLowerCase().includes('count') && typeof row[key] === 'string') {
+            row[key] = parseInt(row[key], 10);
+          }
+        }
+        return row;
+      });
+    } else {
+      return this.client.all(sql, params);
+    }
+  }
+
+  async run(sql, params = []) {
+    if (this.isPg) {
+      let sqlToRun = convertSql(sql);
+      const upper = sqlToRun.toUpperCase();
+      if (upper.startsWith('INSERT') && (upper.includes('USERS') || upper.includes('ARTWORKS') || upper.includes('CLIENT_REQUESTS')) && !upper.includes('RETURNING')) {
+        sqlToRun += ' RETURNING id';
+      }
+      const res = await this.client.query(sqlToRun, params);
+      const lastID = res.rows && res.rows[0] ? res.rows[0].id : null;
+      return { lastID, changes: res.rowCount };
+    } else {
+      return this.client.run(sql, params);
+    }
+  }
+
+  async exec(sql) {
+    if (this.isPg) {
+      let sqlToRun = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/gi, 'SERIAL PRIMARY KEY');
+      return this.client.query(sqlToRun);
+    } else {
+      return this.client.exec(sql);
+    }
+  }
+}
+
 /**
- * Returns the open SQLite database connection singleton.
+ * Returns the open SQLite or PostgreSQL database connection singleton wrapped in our interface.
  */
 export async function getDb() {
   if (!dbConnectionPromise) {
     dbConnectionPromise = (async () => {
-      const dbFolder = process.env.DB_DIR || __dirname;
-      const dbPath = path.resolve(dbFolder, 'database.sqlite');
-      return open({
-        filename: dbPath,
-        driver: sqlite3.Database
-      });
+      if (process.env.DATABASE_URL) {
+        console.log("Connecting to production PostgreSQL database...");
+        const pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false }
+        });
+        dbInstance = new DatabaseWrapper(true, pool);
+      } else {
+        console.log("Connecting to local SQLite database...");
+        const dbFolder = process.env.DB_DIR || __dirname;
+        const dbPath = path.resolve(dbFolder, 'database.sqlite');
+        const sqliteDb = await open({
+          filename: dbPath,
+          driver: sqlite3.Database
+        });
+        dbInstance = new DatabaseWrapper(false, sqliteDb);
+      }
+      return dbInstance;
     })();
   }
 
