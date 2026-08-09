@@ -9,7 +9,7 @@ import AuthPage from './pages/AuthPage';
 import OrderPage from './pages/OrderPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Footer from './components/Footer';
-import WhatsAppButton from './components/WhatsAppButton';
+import SocialButtons from './components/SocialButtons';
 import { api } from './utils/api';
 
 function App() {
@@ -280,7 +280,7 @@ function App() {
             <Route path="/order" element={<OrderPage user={currentUser} pricing={pricing} addRequest={addRequest} clientRequests={clientRequests} updateRequest={updateRequest} />} />
           </Routes>
         </main>
-        <WhatsAppButton />
+        <SocialButtons />
         <Footer />
       </div>
     </Router>
