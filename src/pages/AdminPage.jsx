@@ -3,7 +3,7 @@ import AdminDashboard from '../components/AdminDashboard';
 
 const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, user, clientRequests, updateRequest, reloadRequests }) => {
   return (
-    <div className="admin-page-container page-fade-in">
+    <div className="admin-page-container module-fade-in">
       <AdminDashboard 
         artworks={artworks} 
         setArtworks={setArtworks} 
