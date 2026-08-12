@@ -271,25 +271,61 @@
     display: flex;
   }
 
+  /* Mobile Logo scaling to prevent brand text overflow */
+  .logo-container {
+    gap: 0.8rem;
+  }
+  
+  .logo-icon {
+    font-size: 2.2rem;
+    margin-top: -8px;
+  }
+  
+  .logo-n {
+    left: 0.8rem;
+    top: 0.25rem;
+  }
+  
+  .logo-text {
+    padding-left: 0.8rem;
+  }
+  
+  .logo-main {
+    font-size: 0.95rem;
+    letter-spacing: 4px;
+    margin-bottom: 0.2rem;
+  }
+  
+  .logo-sub .sub-text {
+    font-size: 0.5rem;
+    letter-spacing: 2px;
+  }
+  
+  .logo-sub .line {
+    min-width: 15px;
+  }
+
+  /* Scrollable, compact slide-out menu */
   .nav-links {
     position: fixed;
     top: 0;
     right: -100%;
-    width: 80%;
-    max-width: 300px;
+    width: 75%;
+    max-width: 280px;
     height: 100vh;
     background: rgba(10, 18, 18, 0.98);
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     border-left: 1px solid rgba(255, 255, 255, 0.05);
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    padding: 6rem 3rem 3rem 3rem;
-    gap: 2rem;
+    padding: 6rem 2rem 2rem 2rem;
+    gap: 1.2rem;
     z-index: 10000;
     transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    overflow-y: auto; /* Enable vertical scrolling */
   }
 
   .nav-links.mobile-open {
@@ -300,10 +336,11 @@
     width: 100%;
   }
 
+  /* Scaled down font size for a cleaner, modern mobile layout */
   .nav-links a, .nav-admin-link {
-    font-size: 1rem;
-    letter-spacing: 4px;
-    padding: 0.8rem 0;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    padding: 0.5rem 0;
     display: block;
     width: 100%;
   }
@@ -312,17 +349,19 @@
     display: inline-block;
     text-align: center;
     width: 100%;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    padding: 0.6rem 1.5rem !important;
+    font-size: 0.7rem !important;
   }
 
   .user-info {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.8rem;
     padding-left: 0;
     border-left: none;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 1.5rem;
+    padding-top: 1rem;
     width: 100%;
   }
 
