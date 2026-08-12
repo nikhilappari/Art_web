@@ -4,6 +4,7 @@ import './Navbar.css';
 
 const Navbar = ({ user, logout }) => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,10 +28,14 @@ const Navbar = ({ user, logout }) => {
     }
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <nav className={`navbar glass ${isScrolled ? 'scrolled' : ''}`}>
       <div className="nav-container-full nav-content">
-        <Link to="/" className="logo-container">
+        <Link to="/" className="logo-container" onClick={closeMobileMenu}>
           <div className="logo-icon serif">
             <span className="logo-a">A</span>
             <span className="logo-n">N</span>
@@ -44,25 +49,37 @@ const Navbar = ({ user, logout }) => {
             </div>
           </div>
         </Link>
-        <ul className="nav-links">
-          <li><Link to="/" onClick={handleHomeClick}>Home</Link></li>
-          <li><Link to="/artworks">Artworks</Link></li>
-          <li><Link to="/#about" onClick={handleAboutClick}>About</Link></li>
+        
+        {/* Mobile Menu Toggle Button */}
+        <button 
+          className={`mobile-menu-btn ${isMobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle navigation menu"
+        >
+          <span className="hamburger-bar"></span>
+          <span className="hamburger-bar"></span>
+          <span className="hamburger-bar"></span>
+        </button>
+
+        <ul className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+          <li><Link to="/" onClick={(e) => { handleHomeClick(e); closeMobileMenu(); }}>Home</Link></li>
+          <li><Link to="/artworks" onClick={closeMobileMenu}>Artworks</Link></li>
+          <li><Link to="/#about" onClick={(e) => { handleAboutClick(e); closeMobileMenu(); }}>About</Link></li>
           
           {user ? (
             <>
               {user.role === 'admin' ? (
-                <li><Link to="/admin" className="nav-admin-link">Dashboard</Link></li>
+                <li><Link to="/admin" onClick={closeMobileMenu} className="nav-admin-link">Dashboard</Link></li>
               ) : (
-                <li><Link to="/order" className="nav-order-link">Order Sketch</Link></li>
+                <li><Link to="/order" onClick={closeMobileMenu} className="nav-order-link">Order Sketch</Link></li>
               )}
               <li className="user-info">
                 <span className="username">@{user.username}</span>
-                <button onClick={logout} className="btn-logout-nav">Logout</button>
+                <button onClick={() => { logout(); closeMobileMenu(); }} className="btn-logout-nav">Logout</button>
               </li>
             </>
           ) : (
-            <li><Link to="/auth" className="btn-nav">Login / Sign Up</Link></li>
+            <li><Link to="/auth" onClick={closeMobileMenu} className="btn-nav">Login / Sign Up</Link></li>
           )}
         </ul>
       </div>
