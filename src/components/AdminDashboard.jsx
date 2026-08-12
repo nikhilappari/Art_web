@@ -10,12 +10,12 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
   const [selectedRequest, setSelectedRequest] = useState(null);
 
   const [adminTypedMessage, setAdminTypedMessage] = useState('');
-  const adminChatEndRef = useRef(null);
+  const adminChatMessagesRef = useRef(null);
 
   // Auto-scroll admin chat to bottom
   useEffect(() => {
-    if (adminChatEndRef.current) {
-      adminChatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (adminChatMessagesRef.current) {
+      adminChatMessagesRef.current.scrollTop = adminChatMessagesRef.current.scrollHeight;
     }
   }, [selectedRequest?.messages]);
 
@@ -776,7 +776,7 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                 </h4>
                 
                 <div className="admin-chat-box" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '350px', width: '100%' }}>
-                  <div className="admin-chat-messages" style={{ flex: '1', padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  <div className="admin-chat-messages" ref={adminChatMessagesRef} style={{ flex: '1', padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     {selectedRequest.messages && selectedRequest.messages.length > 0 ? (
                       selectedRequest.messages.map((msg, index) => {
                         const isSelf = msg.sender === (user?.username || 'Artist') || msg.sender === 'Artist' || msg.sender === 'aesthetic_by_nikhil';
@@ -811,7 +811,6 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
                         <p style={{ margin: 0 }}>No messages yet. Send a note to start the conversation!</p>
                       </div>
                     )}
-                    <div ref={adminChatEndRef} />
                   </div>
                   
                   <form className="chat-input-area" onSubmit={handleAdminSendMessage} style={{ display: 'flex', borderTop: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)' }}>

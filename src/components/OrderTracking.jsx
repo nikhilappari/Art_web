@@ -7,11 +7,11 @@ const OrderTracking = ({ request, updateRequest, user }) => {
   const { id, status, price, type, date, adminNote, customerApproval } = request;
   const messagesList = request.messages || [];
   const [typedMessage, setTypedMessage] = useState('');
-  const chatEndRef = useRef(null);
+  const chatMessagesRef = useRef(null);
 
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
     }
   }, [messagesList]);
 
@@ -174,7 +174,7 @@ const OrderTracking = ({ request, updateRequest, user }) => {
       <div className="order-chat-section">
         <h4 className="chat-title">💬 Order Discussion</h4>
         <div className="chat-box">
-          <div className="chat-messages">
+          <div className="chat-messages" ref={chatMessagesRef}>
             {messagesList.length > 0 ? (
               messagesList.map((msg, index) => {
                 const isSelf = user && msg.sender === user.username;
@@ -197,7 +197,6 @@ const OrderTracking = ({ request, updateRequest, user }) => {
                 <p>No messages yet. Ask the artist about details or pricing!</p>
               </div>
             )}
-            <div ref={chatEndRef} />
           </div>
           <form className="chat-input-area" onSubmit={handleSendMessage}>
             <textarea
