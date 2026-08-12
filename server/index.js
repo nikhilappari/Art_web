@@ -458,10 +458,11 @@ app.get('/api/requests', authenticateToken, async (req, res) => {
       requests = await db.all("SELECT * FROM client_requests WHERE name = ? ORDER BY date DESC", [req.user.username]);
     }
     
-    // Parse JSON stringified images list
+    // Parse JSON stringified images and messages lists
     const parsedRequests = requests.map(r => ({
       ...r,
-      images: JSON.parse(r.images || '[]')
+      images: JSON.parse(r.images || '[]'),
+      messages: JSON.parse(r.messages || '[]')
     }));
 
     return res.json(parsedRequests);
@@ -491,8 +492,8 @@ app.post('/api/requests', authenticateToken, async (req, res) => {
   try {
     const db = await getDb();
     await db.run(
-      `INSERT INTO client_requests (id, name, type, image, images, price, frame, status, date) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?)`,
+      `INSERT INTO client_requests (id, name, type, image, images, price, frame, status, date, messages) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)`,
       [
         id,
         req.user.username,
@@ -501,12 +502,14 @@ app.post('/api/requests', authenticateToken, async (req, res) => {
         JSON.stringify(images),
         parsedPrice,
         frame || 'Without Frame',
-        date
+        date,
+        JSON.stringify([])
       ]
     );
 
     const created = await db.get("SELECT * FROM client_requests WHERE id = ?", [id]);
     created.images = JSON.parse(created.images || '[]');
+    created.messages = JSON.parse(created.messages || '[]');
     return res.status(201).json(created);
   } catch (error) {
     console.error(error);
@@ -516,7 +519,7 @@ app.post('/api/requests', authenticateToken, async (req, res) => {
 
 app.put('/api/requests/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { status, price, frame, customerApproval, adminNote } = req.body;
+  const { status, price, frame, customerApproval, adminNote, messages } = req.body;
 
   try {
     const db = await getDb();
@@ -537,7 +540,7 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'admin') {
       await db.run(
         `UPDATE client_requests 
-         SET status = ?, price = ?, frame = ?, customerApproval = ?, adminNote = ? 
+         SET status = ?, price = ?, frame = ?, customerApproval = ?, adminNote = ?, messages = ? 
          WHERE id = ?`,
         [
           status !== undefined ? status : existing.status,
@@ -545,22 +548,24 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
           frame !== undefined ? frame : existing.frame,
           customerApproval !== undefined ? customerApproval : existing.customerApproval,
           adminNote !== undefined ? adminNote : existing.adminNote,
+          messages !== undefined ? JSON.stringify(messages) : existing.messages,
           id
         ]
       );
     } else {
-      // Customers can only approve or decline quotes
+      // Customers can only approve or decline quotes and add messages
       if (existing.name !== req.user.username) {
         return res.status(403).json({ message: 'Unauthorized access to this order.' });
       }
       await db.run(
         `UPDATE client_requests 
-         SET customerApproval = ?, status = ?, adminNote = ? 
+         SET customerApproval = ?, status = ?, adminNote = ?, messages = ? 
          WHERE id = ?`,
         [
           customerApproval !== undefined ? customerApproval : existing.customerApproval,
           status !== undefined ? status : existing.status,
           adminNote !== undefined ? adminNote : existing.adminNote,
+          messages !== undefined ? JSON.stringify(messages) : existing.messages,
           id
         ]
       );
@@ -568,6 +573,7 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
 
     const updated = await db.get("SELECT * FROM client_requests WHERE id = ?", [id]);
     updated.images = JSON.parse(updated.images || '[]');
+    updated.messages = JSON.parse(updated.messages || '[]');
     return res.json(updated);
   } catch (error) {
     console.error(error);

@@ -199,9 +199,17 @@ export async function initDb() {
       status TEXT NOT NULL DEFAULT 'Pending',
       customerApproval TEXT,
       adminNote TEXT,
-      date TEXT NOT NULL
+      date TEXT NOT NULL,
+      messages TEXT DEFAULT '[]'
     )
   `);
+
+  // Migrate existing database for client_requests new column: messages
+  try {
+    await db.exec("ALTER TABLE client_requests ADD COLUMN messages TEXT DEFAULT '[]'");
+  } catch (e) {
+    // Column already exists, safe to ignore
+  }
 
   // Clean up old default 'admin' user if present
   await db.run("DELETE FROM users WHERE username = ?", ["admin"]);

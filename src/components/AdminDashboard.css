@@ -478,3 +478,22 @@
   }
 }
 
+/* Responsive Two Column Modal Layout for Client Request details & chat */
+@media (max-width: 768px) {
+  .admin-two-column-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem !important;
+  }
+  .admin-modal-columns {
+    flex-direction: column;
+    gap: 1.5rem !important;
+  }
+  .admin-modal-right {
+    border-left: none !important;
+    padding-left: 0 !important;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+  }
+}
+

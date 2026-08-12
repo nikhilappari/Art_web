@@ -187,7 +187,8 @@ function App() {
         price: updatedRequest.price,
         frame: updatedRequest.frame,
         customerApproval: updatedRequest.customerApproval,
-        adminNote: updatedRequest.adminNote
+        adminNote: updatedRequest.adminNote,
+        messages: updatedRequest.messages
       });
       setClientRequests(prev => prev.map(req => req.id === saved.id ? saved : req));
     } catch (e) {

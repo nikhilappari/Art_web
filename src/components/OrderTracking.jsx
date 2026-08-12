@@ -1,10 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './OrderTracking.css';
 
-const OrderTracking = ({ request, updateRequest }) => {
+const OrderTracking = ({ request, updateRequest, user }) => {
   if (!request) return null;
 
   const { id, status, price, type, date, adminNote, customerApproval } = request;
+  const messagesList = request.messages || [];
+  const [typedMessage, setTypedMessage] = useState('');
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messagesList]);
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!typedMessage.trim()) return;
+
+    const newMessage = {
+      sender: user ? user.username : 'Customer',
+      text: typedMessage.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    if (updateRequest) {
+      updateRequest({
+        ...request,
+        messages: [...messagesList, newMessage]
+      });
+      setTypedMessage('');
+    }
+  };
 
   const handleApprove = () => {
     if (updateRequest) {
@@ -140,6 +168,54 @@ const OrderTracking = ({ request, updateRequest }) => {
             </div>
           );
         })}
+      </div>
+
+      {/* Discussion Chat Section */}
+      <div className="order-chat-section">
+        <h4 className="chat-title">💬 Order Discussion</h4>
+        <div className="chat-box">
+          <div className="chat-messages">
+            {messagesList.length > 0 ? (
+              messagesList.map((msg, index) => {
+                const isSelf = user && msg.sender === user.username;
+                const formattedTime = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return (
+                  <div key={index} className={`chat-message ${isSelf ? 'self' : 'other'}`}>
+                    <div className="message-meta">
+                      <span className="message-sender">{msg.sender}</span>
+                      <span className="message-time">{formattedTime}</span>
+                    </div>
+                    <div className="chat-bubble">
+                      {msg.text}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="chat-empty-state">
+                <span>💬</span>
+                <p>No messages yet. Ask the artist about details or pricing!</p>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+          <form className="chat-input-area" onSubmit={handleSendMessage}>
+            <textarea
+              placeholder="Type a message to the artist..."
+              value={typedMessage}
+              onChange={(e) => setTypedMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e);
+                }
+              }}
+            />
+            <button type="submit" className="btn-send-message" disabled={!typedMessage.trim()}>
+              Send
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

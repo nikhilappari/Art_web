@@ -1,13 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './AdminDashboard.css';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { api } from '../utils/api';
 
-const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, clientRequests = [], updateRequest, reloadRequests }) => {
+const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, clientRequests = [], updateRequest, reloadRequests, user }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
+
+  const [adminTypedMessage, setAdminTypedMessage] = useState('');
+  const adminChatEndRef = useRef(null);
+
+  // Auto-scroll admin chat to bottom
+  useEffect(() => {
+    if (adminChatEndRef.current) {
+      adminChatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedRequest?.messages]);
+
+  const handleAdminSendMessage = (e) => {
+    e.preventDefault();
+    if (!adminTypedMessage.trim() || !selectedRequest) return;
+
+    const newMessage = {
+      sender: user ? user.username : 'Artist',
+      text: adminTypedMessage.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    const updatedRequest = {
+      ...selectedRequest,
+      messages: [...(selectedRequest.messages || []), newMessage]
+    };
+
+    setSelectedRequest(updatedRequest);
+    if (updateRequest) {
+      updateRequest(updatedRequest);
+    }
+    setAdminTypedMessage('');
+  };
 
   // Cloudinary upload loading states
   const [isUploadingSketch, setIsUploadingSketch] = useState(false);
@@ -620,107 +652,185 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
 
       {selectedRequest && (
         <div className="admin-modal-overlay">
-          <div className="admin-modal glass" style={{ maxWidth: '600px' }}>
+          <div className="admin-modal glass admin-two-column-modal" style={{ maxWidth: '900px', width: '90%' }}>
             <h3 className="serif mb-2">Request Details: {selectedRequest.id}</h3>
             
-            <div className="form-grid mb-2">
-              <div className="form-group">
-                <label>Customer Name</label>
-                <p className="semibold">{selectedRequest.name}</p>
-              </div>
-              <div className="form-group">
-                <label>Customer Approval</label>
-                <p className="semibold">
-                  {selectedRequest.customerApproval === 'Approved' ? (
-                    <span style={{ color: '#4ade80', fontWeight: '600' }}>✅ Approved & Confirmed</span>
-                  ) : selectedRequest.customerApproval === 'Declined' ? (
-                    <span style={{ color: '#ef4444', fontWeight: '600' }}>❌ Declined Quote</span>
-                  ) : selectedRequest.status === 'Accepted' ? (
-                    <span style={{ color: '#d7b46a', fontWeight: '600' }}>⏳ Awaiting Decision</span>
-                  ) : (
-                    <span className="text-dim">Pending Quote Review</span>
-                  )}
-                </p>
-              </div>
-              <div className="form-group full-width">
-                <label>Portrait Type & Frame</label>
-                <p>{selectedRequest.type} | Frame: {selectedRequest.frame || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="form-group full-width mb-2">
-              <label>Reference Photos</label>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                {selectedRequest.images && selectedRequest.images.length > 0 ? (
-                  selectedRequest.images.map((img, idx) => (
-                    <div key={idx} style={{ position: 'relative' }}>
-                      <img src={img} alt={`Reference ${idx + 1}`} style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border-color)' }} />
-                      <a href={img} download={`Reference_${selectedRequest.id}_${idx + 1}.png`} className="icon-btn" title="Download" style={{ position: 'absolute', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>⬇️</a>
-                    </div>
-                  ))
-                ) : selectedRequest.image ? (
-                  <div style={{ position: 'relative' }}>
-                    <img src={selectedRequest.image} alt="Reference" style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border-color)' }} />
-                    <a href={selectedRequest.image} download={`Reference_${selectedRequest.id}.png`} className="icon-btn" title="Download" style={{ position: 'absolute', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>⬇️</a>
+            <div className="admin-modal-columns" style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
+              
+              {/* Left Column: Details and Updates */}
+              <div className="admin-modal-left" style={{ flex: '1.2', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-grid mb-2">
+                  <div className="form-group">
+                    <label>Customer Name</label>
+                    <p className="semibold">{selectedRequest.name}</p>
                   </div>
-                ) : (
-                  <p className="text-dim">No photos provided.</p>
-                )}
-              </div>
-            </div>
+                  <div className="form-group">
+                    <label>Customer Approval</label>
+                    <p className="semibold">
+                      {selectedRequest.customerApproval === 'Approved' ? (
+                        <span style={{ color: '#4ade80', fontWeight: '600' }}>✅ Approved & Confirmed</span>
+                      ) : selectedRequest.customerApproval === 'Declined' ? (
+                        <span style={{ color: '#ef4444', fontWeight: '600' }}>❌ Declined Quote</span>
+                      ) : selectedRequest.status === 'Accepted' ? (
+                        <span style={{ color: '#d7b46a', fontWeight: '600' }}>⏳ Awaiting Decision</span>
+                      ) : (
+                        <span className="text-dim">Pending Quote Review</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="form-group full-width">
+                    <label>Portrait Type & Frame</label>
+                    <p>{selectedRequest.type} | Frame: {selectedRequest.frame || 'N/A'}</p>
+                  </div>
+                </div>
 
-            <div className="form-grid mb-2">
-              <div className="form-group">
-                <label>Final Price (₹)</label>
-                <input 
-                  type="number" 
-                  value={selectedRequest.price || 0}
-                  onChange={(e) => setSelectedRequest({...selectedRequest, price: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Status</label>
-                <select 
-                  value={selectedRequest.status}
-                  onChange={(e) => setSelectedRequest({...selectedRequest, status: e.target.value})}
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
-            </div>
+                <div className="form-group full-width mb-2">
+                  <label>Reference Photos</label>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                    {selectedRequest.images && selectedRequest.images.length > 0 ? (
+                      selectedRequest.images.map((img, idx) => (
+                        <div key={idx} style={{ position: 'relative' }}>
+                          <img src={img} alt={`Reference ${idx + 1}`} style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border-color)' }} />
+                          <a href={img} download={`Reference_${selectedRequest.id}_${idx + 1}.png`} className="icon-btn" title="Download" style={{ position: 'absolute', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>⬇️</a>
+                        </div>
+                      ))
+                    ) : selectedRequest.image ? (
+                      <div style={{ position: 'relative' }}>
+                        <img src={selectedRequest.image} alt="Reference" style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border-color)' }} />
+                        <a href={selectedRequest.image} download={`Reference_${selectedRequest.id}.png`} className="icon-btn" title="Download" style={{ position: 'absolute', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>⬇️</a>
+                      </div>
+                    ) : (
+                      <p className="text-dim">No photos provided.</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className="form-group full-width mb-2">
-              <label>Message to Customer (Price/Reference Note)</label>
-              <textarea 
-                rows="3"
-                placeholder="Explain the price update or details regarding the reference image..." 
-                value={selectedRequest.adminNote || ''}
-                onChange={(e) => setSelectedRequest({...selectedRequest, adminNote: e.target.value})}
-                className="admin-textarea"
-                style={{ width: '100%', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', padding: '0.8rem', outline: 'none', resize: 'vertical' }}
-              ></textarea>
-            </div>
+                <div className="form-grid mb-2">
+                  <div className="form-group">
+                    <label>Final Price (₹)</label>
+                    <input 
+                      type="number" 
+                      value={selectedRequest.price || 0}
+                      onChange={(e) => setSelectedRequest({...selectedRequest, price: e.target.value})}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select 
+                      value={selectedRequest.status}
+                      onChange={(e) => setSelectedRequest({...selectedRequest, status: e.target.value})}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Accepted">Accepted</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="modal-actions mt-2">
-              <button type="button" className="btn-ghost" onClick={() => setSelectedRequest(null)}>Cancel</button>
-              <button 
-                type="button" 
-                className="btn-primary-small"
-                onClick={() => {
-                  if (updateRequest) {
-                    updateRequest(selectedRequest);
-                  }
-                  alert("Request updated successfully!");
-                  setSelectedRequest(null);
-                }}
-              >
-                Save Changes
-              </button>
+                <div className="form-group full-width mb-2">
+                  <label>Message to Customer (Price/Reference Note)</label>
+                  <textarea 
+                    rows="3"
+                    placeholder="Explain the price update or details regarding the reference image..." 
+                    value={selectedRequest.adminNote || ''}
+                    onChange={(e) => setSelectedRequest({...selectedRequest, adminNote: e.target.value})}
+                    className="admin-textarea"
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', padding: '0.8rem', outline: 'none', resize: 'vertical' }}
+                  ></textarea>
+                </div>
+
+                <div className="modal-actions mt-auto pt-2">
+                  <button type="button" className="btn-ghost" onClick={() => setSelectedRequest(null)}>Cancel</button>
+                  <button 
+                    type="button" 
+                    className="btn-primary-small"
+                    onClick={() => {
+                      if (updateRequest) {
+                        updateRequest(selectedRequest);
+                      }
+                      alert("Request updated successfully!");
+                      setSelectedRequest(null);
+                    }}
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: Chat/Discussion */}
+              <div className="admin-modal-right" style={{ flex: '1', display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-color)', paddingLeft: '2rem' }}>
+                <h4 className="chat-title" style={{ fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-gold)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  💬 Discussion with {selectedRequest.name}
+                </h4>
+                
+                <div className="admin-chat-box" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '350px', width: '100%' }}>
+                  <div className="admin-chat-messages" style={{ flex: '1', padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                    {selectedRequest.messages && selectedRequest.messages.length > 0 ? (
+                      selectedRequest.messages.map((msg, index) => {
+                        const isSelf = msg.sender === (user?.username || 'Artist') || msg.sender === 'Artist' || msg.sender === 'aesthetic_by_nikhil';
+                        const formattedTime = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return (
+                          <div key={index} className={`chat-message ${isSelf ? 'self' : 'other'}`} style={{ display: 'flex', flexDirection: 'column', maxWidth: '80%', alignSelf: isSelf ? 'flex-end' : 'flex-start' }}>
+                            <div className="message-meta" style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '2px', display: 'flex', gap: '6px', justifyContent: isSelf ? 'flex-end' : 'flex-start' }}>
+                              <span className="message-sender" style={{ fontWeight: '600', color: isSelf ? 'var(--accent-gold)' : 'var(--text-secondary)' }}>{msg.sender}</span>
+                              <span className="message-time">{formattedTime}</span>
+                            </div>
+                            <div className="chat-bubble" style={{ 
+                              padding: '0.6rem 0.9rem', 
+                              fontSize: '0.85rem', 
+                              lineHeight: '1.4', 
+                              borderRadius: '10px', 
+                              wordBreak: 'break-word',
+                              background: isSelf ? 'linear-gradient(135deg, var(--accent-gold) 0%, #b8954f 100%)' : 'rgba(255,255,255,0.05)',
+                              color: isSelf ? '#0d0d0d' : 'var(--text-primary)',
+                              border: isSelf ? 'none' : '1px solid var(--border-color)',
+                              borderBottomRightRadius: isSelf ? '2px' : '10px',
+                              borderBottomLeftRadius: isSelf ? '10px' : '2px',
+                              fontWeight: isSelf ? '500' : 'normal'
+                            }}>
+                              {msg.text}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="chat-empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)', fontSize: '0.8rem', opacity: '0.5', gap: '6px' }}>
+                        <span>💬</span>
+                        <p style={{ margin: 0 }}>No messages yet. Send a note to start the conversation!</p>
+                      </div>
+                    )}
+                    <div ref={adminChatEndRef} />
+                  </div>
+                  
+                  <form className="chat-input-area" onSubmit={handleAdminSendMessage} style={{ display: 'flex', borderTop: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)' }}>
+                    <textarea
+                      placeholder="Type a message to client..."
+                      value={adminTypedMessage}
+                      onChange={(e) => setAdminTypedMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAdminSendMessage(e);
+                        }
+                      }}
+                      style={{ flex: '1', background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '0.8rem 1rem', fontSize: '0.85rem', outline: 'none', resize: 'none', fontFamily: 'inherit', height: '50px' }}
+                    />
+                    <button 
+                      type="submit" 
+                      className="btn-send-message" 
+                      disabled={!adminTypedMessage.trim()}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--accent-gold)', padding: '0 1.2rem', cursor: 'pointer', fontSize: '0.9rem', borderLeft: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      Send
+                    </button>
+                  </form>
+                </div>
+              </div>
+              
             </div>
+            
           </div>
         </div>
       )}

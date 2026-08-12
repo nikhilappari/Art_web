@@ -124,7 +124,7 @@ const OrderPage = ({ user, pricing, addRequest, clientRequests = [], updateReque
                       <div className={`order-tracking-collapse ${isExpanded ? 'open' : ''}`}>
                         {isExpanded && (
                           <div className="order-tracking-content">
-                            <OrderTracking request={req} updateRequest={updateRequest} />
+                            <OrderTracking request={req} updateRequest={updateRequest} user={user} />
                           </div>
                         )}
                       </div>
