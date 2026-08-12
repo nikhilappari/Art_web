@@ -1,4 +1,4 @@
-# 🎨 Aesthetic by Nikhil
+# 🎨 aesthetic by nikhil
 
 > A modern, aesthetic, and responsive personal portfolio website created to showcase my portrait artwork and creative work.
 
