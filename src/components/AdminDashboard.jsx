@@ -15,7 +15,10 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
   // Auto-scroll admin chat to bottom
   useEffect(() => {
     if (adminChatMessagesRef.current) {
-      adminChatMessagesRef.current.scrollTop = adminChatMessagesRef.current.scrollHeight;
+      const container = adminChatMessagesRef.current;
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 50);
     }
   }, [selectedRequest?.messages]);
 

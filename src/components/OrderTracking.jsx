@@ -11,7 +11,10 @@ const OrderTracking = ({ request, updateRequest, user }) => {
 
   useEffect(() => {
     if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+      const container = chatMessagesRef.current;
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 50);
     }
   }, [messagesList]);
 
