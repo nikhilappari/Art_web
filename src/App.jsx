@@ -90,12 +90,22 @@ function App() {
     loadAppData();
   }, []);
 
-  // Sync clientRequests when currentUser changes
+  // Sync clientRequests and set up polling when currentUser changes
   useEffect(() => {
     if (currentUser) {
+      // Fetch immediately
       api.get('/api/requests')
         .then(data => setClientRequests(data))
         .catch(err => console.error("Failed to fetch requests:", err));
+
+      // Setup polling every 5 seconds for real-time messages
+      const interval = setInterval(() => {
+        api.get('/api/requests')
+          .then(data => setClientRequests(data))
+          .catch(err => console.error("Failed to fetch requests:", err));
+      }, 5000);
+
+      return () => clearInterval(interval);
     } else {
       setClientRequests([]);
     }

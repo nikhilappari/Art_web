@@ -41,6 +41,16 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
     setAdminTypedMessage('');
   };
 
+  // Sync selectedRequest with background changes from polling
+  useEffect(() => {
+    if (selectedRequest) {
+      const updated = clientRequests.find(r => r.id === selectedRequest.id);
+      if (updated && JSON.stringify(updated.messages) !== JSON.stringify(selectedRequest.messages)) {
+        setSelectedRequest(updated);
+      }
+    }
+  }, [clientRequests, selectedRequest]);
+
   // Cloudinary upload loading states
   const [isUploadingSketch, setIsUploadingSketch] = useState(false);
   const [isUploadingBefore, setIsUploadingBefore] = useState(false);
