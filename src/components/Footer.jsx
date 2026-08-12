@@ -33,7 +33,7 @@ const Footer = () => {
           
           <div className="footer-contact">
             <h4 className="footer-title">Contact</h4>
-            <p>nikhil@aesthetic.com</p>
+            <p>nikhilappari2006@gmail.com</p>
             <p>+91 98491 17467</p>
             <div className="social-links">
               <a href="#" className="social-icon">IG</a>
