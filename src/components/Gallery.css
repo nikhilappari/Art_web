@@ -601,14 +601,13 @@
     gap: 1rem;
   }
   .masonry-grid {
-    column-count: 1;
+    column-count: 2;
+    column-gap: 1rem;
+  }
+  .masonry-card {
+    margin-bottom: 1rem;
   }
   .masonry-hover-overlay {
-    background: rgba(10, 18, 18, 0.7);
-    opacity: 1;
-    padding: 1.5rem;
-  }
-  .hover-content {
-    transform: translateY(0);
+    display: none !important;
   }
 }
