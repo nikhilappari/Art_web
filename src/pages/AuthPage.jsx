@@ -88,7 +88,7 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
         if (user.role === 'admin') {
           navigate('/admin');
         } else {
-          navigate('/order');
+          navigate('/');
         }
       } else {
         setError('Google Authentication was rejected by the server.');
@@ -117,7 +117,7 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
           if (user.role === 'admin') {
             navigate('/admin');
           } else {
-            navigate('/order');
+            navigate('/');
           }
         } else {
           setError('Invalid username or password.');
@@ -136,7 +136,7 @@ const AuthPage = ({ login, signup, loginWithGoogle }) => {
         
         const result = await signup(formData.username, formData.password);
         if (result.success) {
-          navigate('/order');
+          navigate('/');
         } else {
           setError(result.message);
         }
