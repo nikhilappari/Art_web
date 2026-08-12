@@ -6,11 +6,12 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
-  z-index: 2000;
+  z-index: 99999;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 2rem;
+  padding: 6rem 2rem 2rem 2rem;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -19,6 +20,7 @@
   background: var(--bg-primary);
   position: relative;
   overflow: hidden;
+  margin-bottom: 2rem;
 }
 
 .close-btn {

@@ -7,7 +7,7 @@ const GalleryPage = ({ artworks }) => {
   }, []);
 
   return (
-    <div className="gallery-page page-fade-in">
+    <div className="gallery-page module-fade-in">
       <div style={{ height: '80px' }}></div> {/* Spacer for fixed navbar */}
       <Gallery artworks={artworks} />
     </div>
