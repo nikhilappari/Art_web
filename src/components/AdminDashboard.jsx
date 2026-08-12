@@ -3,7 +3,7 @@ import './AdminDashboard.css';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { api } from '../utils/api';
 
-const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, clientRequests = [], updateRequest }) => {
+const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, clientRequests = [], updateRequest, reloadRequests }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -104,20 +104,28 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
     setNewSketch({ title: '', category: 'Charcoal', price: '', status: 'Published', image: '', description: '', type: 'Black & White', size: 'A4', orientation: 'Vertical' });
   };
 
+  const liveNewRequests = clientRequests.filter(r => r.status === 'Pending' || r.status === 'Accepted').length;
+  const liveInProgress = clientRequests.filter(r => r.status === 'In Progress').length;
+  const liveCompleted = clientRequests.filter(r => r.status === 'Completed').length;
+  const liveRevenue = clientRequests
+    .filter(r => r.status === 'Completed')
+    .reduce((sum, r) => sum + (r.price || 0), 0);
+
   const stats = [
-    { label: "New Requests", value: 5, icon: "📥" },
-    { label: "In Progress", value: 12, icon: "🎨" },
-    { label: "Completed", value: 156, icon: "✅" },
-    { label: "Revenue (MTD)", value: "₹28,400", icon: "💰" }
+    { label: "New Requests", value: liveNewRequests, icon: "📥" },
+    { label: "In Progress", value: liveInProgress, icon: "🎨" },
+    { label: "Completed", value: liveCompleted, icon: "✅" },
+    { label: "Revenue (MTD)", value: `₹${liveRevenue.toLocaleString('en-IN')}`, icon: "💰" }
   ];
 
-  const recentRequests = [
-    { id: "ORD-921", name: "Ananya Sharma", type: "Color Portrait (A3)", status: "Pending", date: "2024-05-12" },
-    { id: "ORD-920", name: "Rahul Varma", type: "Charcoal Sketch (A4)", status: "In Progress", date: "2024-05-11" },
-    { id: "ORD-919", name: "Sneha Kapur", type: "Couple Portrait", status: "Completed", date: "2024-05-10" }
-  ];
+  const allRequests = clientRequests || [];
 
-  const allRequests = [...(clientRequests || []), ...recentRequests];
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    if ((tabName === 'requests' || tabName === 'overview') && reloadRequests) {
+      reloadRequests();
+    }
+  };
 
   return (
     <section className="admin-section">
@@ -127,10 +135,10 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
           <p>Welcome, Nikhil</p>
         </div>
         <nav className="admin-nav">
-          <button className={`admin-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
-          <button className={`admin-nav-item ${activeTab === 'sketches' ? 'active' : ''}`} onClick={() => setActiveTab('sketches')}>Manage Sketches</button>
-          <button className={`admin-nav-item ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => setActiveTab('requests')}>Client Requests</button>
-          <button className={`admin-nav-item ${activeTab === 'pricing' ? 'active' : ''}`} onClick={() => setActiveTab('pricing')}>Pricing & Settings</button>
+          <button className={`admin-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => handleTabChange('overview')}>Overview</button>
+          <button className={`admin-nav-item ${activeTab === 'sketches' ? 'active' : ''}`} onClick={() => handleTabChange('sketches')}>Manage Sketches</button>
+          <button className={`admin-nav-item ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => handleTabChange('requests')}>Client Requests</button>
+          <button className={`admin-nav-item ${activeTab === 'pricing' ? 'active' : ''}`} onClick={() => handleTabChange('pricing')}>Pricing & Settings</button>
         </nav>
         <div className="admin-sidebar-footer">
           <button className="btn-logout">Logout</button>
@@ -156,16 +164,23 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
             <div className="admin-card glass mt-2">
               <h4 className="card-header">Recent Activity</h4>
               <div className="activity-list">
-                <div className="activity-item">
-                  <div className="activity-dot pending"></div>
-                  <p>New request received from <strong>Ananya Sharma</strong> for a Color Portrait.</p>
-                  <span className="activity-time">2 mins ago</span>
-                </div>
-                <div className="activity-item">
-                  <div className="activity-dot completed"></div>
-                  <p>Order <strong>ORD-919</strong> marked as completed.</p>
-                  <span className="activity-time">1 hour ago</span>
-                </div>
+                {clientRequests.length > 0 ? (
+                  [...clientRequests]
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 3)
+                    .map(act => (
+                      <div key={act.id} className="activity-item">
+                        <div className={`activity-dot ${act.status.toLowerCase().replace(' ', '-')}`}></div>
+                        <p>
+                          Order <strong>#{act.id}</strong> from <strong>{act.name}</strong> is <strong>{act.status}</strong>.
+                          {act.customerApproval && ` (Customer: ${act.customerApproval})`}
+                        </p>
+                        <span className="activity-time">{act.date}</span>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-dim text-center py-1" style={{ fontSize: '0.9rem' }}>No recent request activity.</p>
+                )}
               </div>
             </div>
           </div>

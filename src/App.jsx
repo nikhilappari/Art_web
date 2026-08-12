@@ -195,6 +195,15 @@ function App() {
     }
   };
 
+  const reloadRequests = async () => {
+    try {
+      const loadedRequests = await api.get('/api/requests');
+      setClientRequests(loadedRequests);
+    } catch (e) {
+      console.error("Failed to reload requests:", e);
+    }
+  };
+
   const login = async (username, password) => {
     try {
       const data = await api.post('/api/auth/login', { username, password });
@@ -273,6 +282,7 @@ function App() {
                   user={currentUser}
                   clientRequests={clientRequests}
                   updateRequest={updateRequest}
+                  reloadRequests={reloadRequests}
                 />
               </ProtectedRoute>
             } />

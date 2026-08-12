@@ -1,7 +1,7 @@
 import React from 'react';
 import AdminDashboard from '../components/AdminDashboard';
 
-const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, user, clientRequests, updateRequest }) => {
+const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, saveTransformation, pricing, setPricing, savePricing, user, clientRequests, updateRequest, reloadRequests }) => {
   return (
     <div className="admin-page-container page-fade-in">
       <AdminDashboard 
@@ -16,6 +16,7 @@ const AdminPage = ({ artworks, setArtworks, transformation, setTransformation, s
         user={user}
         clientRequests={clientRequests}
         updateRequest={updateRequest}
+        reloadRequests={reloadRequests}
       />
     </div>
   );

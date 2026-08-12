@@ -555,10 +555,12 @@ app.put('/api/requests/:id', authenticateToken, async (req, res) => {
       }
       await db.run(
         `UPDATE client_requests 
-         SET customerApproval = ? 
+         SET customerApproval = ?, status = ?, adminNote = ? 
          WHERE id = ?`,
         [
           customerApproval !== undefined ? customerApproval : existing.customerApproval,
+          status !== undefined ? status : existing.status,
+          adminNote !== undefined ? adminNote : existing.adminNote,
           id
         ]
       );

@@ -10,7 +10,8 @@ const OrderTracking = ({ request, updateRequest }) => {
     if (updateRequest) {
       updateRequest({
         ...request,
-        customerApproval: 'Approved'
+        customerApproval: 'Approved',
+        status: 'In Progress'
       });
       alert("Thank you! You have confirmed the quote. The artist will start working on your custom sketch soon.");
     }
