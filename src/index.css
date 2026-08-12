@@ -114,11 +114,14 @@ button {
 }
 
 @media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
   .section-padding {
     padding: 4rem 0;
   }
   body {
-    cursor: auto; /* Disable custom cursor on mobile */
+    cursor: auto;
   }
   .custom-cursor, .cursor-glow {
     display: none;
