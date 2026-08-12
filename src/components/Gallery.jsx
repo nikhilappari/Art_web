@@ -5,7 +5,7 @@ import './Gallery.css';
 
 const Gallery = ({ artworks }) => {
   const [filter, setFilter] = useState('All');
-  const [viewMode, setViewMode] = useState('spotlight'); // 'spotlight' or 'grid'
+  const [viewMode, setViewMode] = useState('grid'); // 'spotlight' or 'grid'
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const navigate = useNavigate();
