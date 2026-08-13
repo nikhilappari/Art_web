@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RequestSketch.css';
 import { api } from '../utils/api';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
 const RequestSketch = ({ pricing, addRequest, user }) => {
   const [formData, setFormData] = useState({
@@ -108,9 +109,14 @@ const RequestSketch = ({ pricing, addRequest, user }) => {
     if (files.length > 0) {
       setIsUploading(true);
       try {
+        const hasCloudinary = pricing?.cloudinaryCloudName && pricing?.cloudinaryUploadPreset;
         const uploadPromises = files.map(async (file) => {
-          const res = await api.uploadFile(file);
-          return res.secure_url;
+          if (hasCloudinary) {
+            return await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
+          } else {
+            const res = await api.uploadFile(file);
+            return res.secure_url;
+          }
         });
         const uploadedUrls = await Promise.all(uploadPromises);
         setFormData(prev => ({ 

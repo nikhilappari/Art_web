@@ -94,8 +94,14 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
     if (file) {
       setIsUploadingSketch(true);
       try {
-        const { secure_url } = await api.uploadFile(file);
-        setNewSketch(prev => ({ ...prev, image: secure_url }));
+        let url;
+        if (pricing?.cloudinaryCloudName && pricing?.cloudinaryUploadPreset) {
+          url = await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
+        } else {
+          const res = await api.uploadFile(file);
+          url = res.secure_url;
+        }
+        setNewSketch(prev => ({ ...prev, image: url }));
       } catch (error) {
         console.error("Upload failed:", error);
         alert(`Upload Failed: ${error.message}`);
@@ -111,8 +117,14 @@ const AdminDashboard = ({ artworks, setArtworks, transformation, setTransformati
       const setUploading = type === 'before' ? setIsUploadingBefore : setIsUploadingAfter;
       setUploading(true);
       try {
-        const { secure_url } = await api.uploadFile(file);
-        setTransformation(prev => ({ ...prev, [type]: secure_url }));
+        let url;
+        if (pricing?.cloudinaryCloudName && pricing?.cloudinaryUploadPreset) {
+          url = await uploadToCloudinary(file, pricing.cloudinaryCloudName, pricing.cloudinaryUploadPreset);
+        } else {
+          const res = await api.uploadFile(file);
+          url = res.secure_url;
+        }
+        setTransformation(prev => ({ ...prev, [type]: url }));
       } catch (error) {
         console.error("Upload failed:", error);
         alert(`Upload Failed: ${error.message}`);
