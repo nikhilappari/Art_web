@@ -30,3 +30,5 @@ server/*.sqlite
 server/public/uploads/*
 !server/public/uploads/.gitkeep
 
+.vercel
+.env*
